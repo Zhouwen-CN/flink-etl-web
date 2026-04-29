@@ -11,7 +11,7 @@ import svgLoader from "vite-svg-loader"
 
 // Configuring Vite: https://cn.vite.dev/config
 export default defineConfig(({ mode }) => {
-  const { VITE_PUBLIC_PATH } = loadEnv(mode, process.cwd(), "") as ImportMetaEnv
+  const { VITE_PUBLIC_PATH, VITE_BASE_URL } = loadEnv(mode, process.cwd(), "") as ImportMetaEnv
   return {
     // 开发或打包构建时用到的公共基础路径
     base: VITE_PUBLIC_PATH,
@@ -35,12 +35,14 @@ export default defineConfig(({ mode }) => {
       open: true,
       // 反向代理
       proxy: {
-        "/api/v1": {
-          target: "https://apifoxmock.com/m1/2930465-2145633-default",
+        [VITE_BASE_URL]: {
+          target: "http://127.0.0.1:8080",
           // 是否为 WebSocket
           ws: false,
           // 是否允许跨域
-          changeOrigin: true
+          changeOrigin: true,
+          // 删除前缀
+          rewrite: path => path.replace(new RegExp(`^${VITE_BASE_URL}`), "")
         }
       },
       // 是否允许跨域

@@ -4,6 +4,7 @@ import { useLayoutMode } from "@@/composables/useLayoutMode"
 import { useWatermark } from "@@/composables/useWatermark"
 import { getCssVar, setCssVar } from "@@/utils/css"
 import { useSettingsStore } from "@/pinia/stores/settings"
+import { useUserStore } from "@/pinia/stores/user"
 import { RightPanel, Settings } from "./components"
 import { useResize } from "./composables/useResize"
 import LeftMode from "./modes/LeftMode.vue"
@@ -21,6 +22,8 @@ const { isLeft, isTop, isLeftTop } = useLayoutMode()
 
 const settingsStore = useSettingsStore()
 
+const userStore = useUserStore()
+
 const { showSettings, showTagsView, showWatermark } = storeToRefs(settingsStore)
 
 // #region 隐藏标签栏时删除其高度，是为了让 Logo 组件高度和 Header 区域高度始终一致
@@ -35,7 +38,7 @@ watchEffect(() => {
 
 // 开启或关闭系统水印
 watchEffect(() => {
-  showWatermark.value ? setWatermark(import.meta.env.VITE_APP_TITLE) : clearWatermark()
+  showWatermark.value ? setWatermark(userStore.nickname) : clearWatermark()
 })
 </script>
 

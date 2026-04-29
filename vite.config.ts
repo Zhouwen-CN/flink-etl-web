@@ -1,5 +1,3 @@
-/// <reference types="vitest/config" />
-
 import { resolve } from "node:path"
 import vue from "@vitejs/plugin-vue"
 import UnoCSS from "unocss/vite"
@@ -140,16 +138,6 @@ export default defineConfig(({ mode }) => {
       }),
       // 为项目开启 MCP Server
       VueMcp()
-    ],
-    // Configuring Vitest: https://cn.vitest.dev/config
-    test: {
-      include: ["tests/**/*.test.{ts,js}"],
-      environment: "happy-dom",
-      server: {
-        deps: {
-          inline: ["element-plus"]
-        }
-      }
-    }
+    ]
   }
 })

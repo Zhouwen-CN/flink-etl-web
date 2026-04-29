@@ -91,15 +91,6 @@ export const constantRoutes: RouteRecordRaw[] = [
         }
       },
       {
-        path: "vxe-table",
-        component: () => import("@/pages/demo/vxe-table/index.vue"),
-        name: "VxeTable",
-        meta: {
-          title: "Vxe Table",
-          keepAlive: true
-        }
-      },
-      {
         path: "level2",
         component: () => import("@/pages/demo/level2/index.vue"),
         redirect: "/demo/level2/level3",

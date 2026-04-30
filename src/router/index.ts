@@ -186,29 +186,29 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     redirect: "/permission/page-level",
     name: "Permission",
     meta: {
-      title: "权限演示",
+      title: "权限管理",
       elIcon: "Lock",
       // 可以在根路由中设置角色
-      roles: ["admin", "editor"],
+      roles: ["admin"],
       alwaysShow: true
     },
     children: [
       {
         path: "page-level",
-        component: () => import("@/pages/demo/permission/page-level.vue"),
+        component: () => import("@/pages/auth/user/index.vue"),
         name: "PermissionPageLevel",
         meta: {
-          title: "页面级",
+          title: "用户管理",
           // 或者在子路由中设置角色
-          roles: ["admin"]
+          roles: undefined
         }
       },
       {
         path: "button-level",
-        component: () => import("@/pages/demo/permission/button-level.vue"),
+        component: () => import("@/pages/auth/role/index.vue"),
         name: "PermissionButtonLevel",
         meta: {
-          title: "按钮级",
+          title: "角色管理",
           // 如果未设置角色，则表示：该页面不需要权限，但会继承根路由的角色
           roles: undefined
         }

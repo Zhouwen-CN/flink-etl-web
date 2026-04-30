@@ -5,6 +5,7 @@ import ThemeSwitch from "@@/components/ThemeSwitch/index.vue"
 import { useDevice } from "@@/composables/useDevice"
 import { useLayoutMode } from "@@/composables/useLayoutMode"
 import { UserFilled } from "@element-plus/icons-vue"
+import { logoutApi } from "@/common/apis/users"
 import { useAppStore } from "@/pinia/stores/app"
 import { useSettingsStore } from "@/pinia/stores/settings"
 import { useUserStore } from "@/pinia/stores/user"
@@ -31,6 +32,10 @@ function toggleSidebar() {
 
 /** 登出 */
 function logout() {
+  const userId = useUserStore().userId
+  if (userId) {
+    logoutApi(userId)
+  }
   userStore.logout()
   router.push("/login")
 }

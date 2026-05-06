@@ -66,21 +66,13 @@ export const constantRoutes: RouteRecordRaw[] = [
   {
     path: "/demo",
     component: Layouts,
-    redirect: "/demo/unocss",
+    redirect: "/demo/element-plus",
     name: "Demo",
     meta: {
       title: "示例集合",
       elIcon: "DataBoard"
     },
     children: [
-      {
-        path: "unocss",
-        component: () => import("@/pages/demo/unocss/index.vue"),
-        name: "UnoCSS",
-        meta: {
-          title: "UnoCSS"
-        }
-      },
       {
         path: "element-plus",
         component: () => import("@/pages/demo/element-plus/index.vue"),
@@ -181,22 +173,22 @@ export const constantRoutes: RouteRecordRaw[] = [
  */
 export const dynamicRoutes: RouteRecordRaw[] = [
   {
-    path: "/permission",
+    path: "/system",
     component: Layouts,
-    redirect: "/permission/page-level",
-    name: "Permission",
+    redirect: "/system/user",
+    name: "System",
     meta: {
-      title: "权限管理",
-      elIcon: "Lock",
+      title: "系统管理",
+      elIcon: "Setting",
       // 可以在根路由中设置角色
       roles: ["admin"],
       alwaysShow: true
     },
     children: [
       {
-        path: "page-level",
+        path: "user",
         component: () => import("@/pages/auth/user/index.vue"),
-        name: "PermissionPageLevel",
+        name: "User",
         meta: {
           title: "用户管理",
           // 或者在子路由中设置角色
@@ -204,13 +196,11 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         }
       },
       {
-        path: "button-level",
+        path: "role",
         component: () => import("@/pages/auth/role/index.vue"),
-        name: "PermissionButtonLevel",
+        name: "Role",
         meta: {
-          title: "角色管理",
-          // 如果未设置角色，则表示：该页面不需要权限，但会继承根路由的角色
-          roles: undefined
+          title: "角色管理"
         }
       }
     ]

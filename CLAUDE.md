@@ -75,7 +75,6 @@
 ├─ .env.staging          # 预发布环境
 ├─ eslint.config.js      # eslint 配置
 ├─ tsconfig.json         # ts 配置
-├─ uno.config.ts         # unocss 配置
 └─ vite.config.ts        # vite 配置
 ```
 

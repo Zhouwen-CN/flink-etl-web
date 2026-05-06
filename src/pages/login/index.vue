@@ -32,6 +32,7 @@ const codeUrl = ref("")
 const loginFormData: LoginRequestData = reactive({
   username: "admin",
   password: "admin123",
+  captchaId: "",
   code: ""
 })
 
@@ -77,7 +78,8 @@ function createCode() {
   codeUrl.value = ""
   // 获取验证码图片
   getCaptchaApi().then((res) => {
-    codeUrl.value = res.data
+    codeUrl.value = res.data.captchaBase64
+    loginFormData.captchaId = res.data.id
   })
 }
 

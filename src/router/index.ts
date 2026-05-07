@@ -167,7 +167,7 @@ export const constantRoutes: RouteRecordRaw[] = [
 ]
 
 /**
- * @name 动态路由
+ * @name 动态路由，name属性需要小写
  * @description 用来放置有权限 (Roles 属性) 的路由
  * @description 必须带有唯一的 Name 属性
  */
@@ -176,7 +176,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     path: "/system",
     component: Layouts,
     redirect: "/system/user",
-    name: "System",
+    name: "system",
     meta: {
       title: "系统管理",
       elIcon: "Setting",
@@ -188,19 +188,25 @@ export const dynamicRoutes: RouteRecordRaw[] = [
       {
         path: "user",
         component: () => import("@/pages/auth/user/index.vue"),
-        name: "User",
+        name: "user",
         meta: {
-          title: "用户管理",
-          // 或者在子路由中设置角色
-          roles: undefined
+          title: "用户管理"
         }
       },
       {
         path: "role",
         component: () => import("@/pages/auth/role/index.vue"),
-        name: "Role",
+        name: "role",
         meta: {
           title: "角色管理"
+        }
+      },
+      {
+        path: "permission",
+        component: () => import("@/pages/auth/permission/index.vue"),
+        name: "permission",
+        meta: {
+          title: "权限管理"
         }
       }
     ]

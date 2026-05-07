@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type { FormRules } from "element-plus"
-import type { CreateOrUpdateTableRequestData, TableData } from "./apis/type"
+import type { CreateOrUpdateTableRequestData, RoleSelectorData, TableData } from "./apis/type"
 import { usePagination } from "@@/composables/usePagination"
 import { CirclePlus, Delete, Download, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
-import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getTableDataApi, updateTableDataApi } from "./apis/index"
+import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getRoleIdsDataApi, getRoleSelectorDataApi, getTableDataApi, updateTableDataApi } from "./apis/index"
 
 const loading = ref<boolean>(false)
 
@@ -17,7 +17,8 @@ const DEFAULT_FORM_DATA: CreateOrUpdateTableRequestData = {
   username: "",
   password: undefined,
   gender: "未知",
-  status: false
+  status: false,
+  roleIds: []
 }
 
 const dialogVisible = ref<boolean>(false)
@@ -27,6 +28,7 @@ const formRef = useTemplateRef("formRef")
 const formData = ref<CreateOrUpdateTableRequestData>(cloneDeep(DEFAULT_FORM_DATA))
 
 const formRules: FormRules<CreateOrUpdateTableRequestData> = {
+  nickname: [{ required: true, trigger: "blur", message: "请输入昵称" }],
   username: [{ required: true, trigger: "blur", message: "请输入用户名" }],
   password: [{ required: true, trigger: "blur", message: "请输入密码" }]
 }
@@ -95,6 +97,9 @@ function handleBathDelete() {
 function handleUpdate(row: TableData) {
   dialogVisible.value = true
   formData.value = cloneDeep(row)
+  getRoleIdsDataApi(row.id).then(({ data }) => {
+    formData.value.roleIds = data
+  })
 }
 // #endregion
 
@@ -135,6 +140,13 @@ function resetSearch() {
 
 // 监听分页参数的变化
 watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
+
+const roleSelectorData = ref<RoleSelectorData[]>([])
+onMounted(() => {
+  getRoleSelectorDataApi().then(({ data }) => {
+    roleSelectorData.value = data
+  })
+})
 </script>
 
 <template>
@@ -190,6 +202,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
               </el-tag>
             </template>
           </el-table-column>
+          <el-table-column prop="updateTime" label="更新时间" align="center" />
           <el-table-column fixed="right" label="操作" width="150" align="center">
             <template #default="scope">
               <el-button type="primary" text bg size="small" @click="handleUpdate(scope.row)">
@@ -249,6 +262,9 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
             active-icon="Check"
             inactive-icon="Close"
           />
+        </el-form-item>
+        <el-form-item prop="roleIds" label="角色">
+          <el-checkbox-group label="角色" v-model="formData.roleIds" :options="roleSelectorData" />
         </el-form-item>
       </el-form>
       <template #footer>

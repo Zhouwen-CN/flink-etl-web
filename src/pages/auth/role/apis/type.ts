@@ -2,6 +2,7 @@ export interface CreateOrUpdateTableRequestData {
   id?: number
   name: string
   code: string
+  permissionIds?: number[]
 }
 
 export interface DeleteBatchTableRequestData {
@@ -28,3 +29,14 @@ export type TableResponseData = ApiResponseData<{
   list: TableData[]
   total: number
 }>
+
+export interface PermissionSelectorData {
+  id: number
+  name: string
+  routeName: string
+  operationType: string
+}
+
+export type PermissionSelectorResponseData = ApiResponseData<PermissionSelectorData[]>
+
+export type PermissionIdsResponseData = ApiResponseData<number[]>

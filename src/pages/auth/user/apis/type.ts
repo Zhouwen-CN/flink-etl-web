@@ -5,6 +5,7 @@ export interface CreateOrUpdateTableRequestData {
   nickname: string
   gender: string
   status: boolean
+  roleIds?: number[]
 }
 
 export interface DeleteBatchTableRequestData {
@@ -32,3 +33,12 @@ export type TableResponseData = ApiResponseData<{
   list: TableData[]
   total: number
 }>
+
+export type RoleIdsResponseData = ApiResponseData<number[]>
+
+export interface RoleSelectorData {
+  label: string
+  value: number
+}
+
+export type RoleSelectorResponseData = ApiResponseData<RoleSelectorData[]>

@@ -1,34 +1,39 @@
 <script lang="ts" setup>
-import type { CheckedInfo, FormRules, TreeInstance, TreeNodeData } from "element-plus"
-import type { RouteRecordRaw } from "vue-router"
-import type { CreateOrUpdateTableRequestData, PermissionSelectorData, TableData } from "./apis/type"
+import type { FormRules } from "element-plus"
+import type { CreateOrUpdateTableFormData, TableData } from "./apis/type"
 import { usePagination } from "@@/composables/usePagination"
 import { CirclePlus, Delete, Download, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
-import { dynamicRoutes } from "@/router/index"
-import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getPermissionIdsApi, getPermissionSelectorApi, getTableDataApi, updateTableDataApi } from "./apis/index"
+import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getTableDataApi, updateTableDataApi } from "./apis"
+import MenuSelector from "./components/MenuSelector/index.vue"
+
+defineOptions({
+  // 命名当前组件
+  name: "ElementPlus"
+})
 
 const loading = ref<boolean>(false)
 
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 
 // #region 增
-const DEFAULT_FORM_DATA: CreateOrUpdateTableRequestData = {
+const DEFAULT_FORM_DATA: CreateOrUpdateTableFormData = {
   id: undefined,
   name: "",
-  code: "",
-  permissionIds: []
+  operationType: "",
+  routeName: ""
 }
 
 const dialogVisible = ref<boolean>(false)
 
 const formRef = useTemplateRef("formRef")
 
-const formData = ref<CreateOrUpdateTableRequestData>(cloneDeep(DEFAULT_FORM_DATA))
+const formData = ref<CreateOrUpdateTableFormData>(cloneDeep(DEFAULT_FORM_DATA))
 
-const formRules: FormRules<CreateOrUpdateTableRequestData> = {
-  name: [{ required: true, trigger: "blur", message: "请输入角色名" }],
-  code: [{ required: true, trigger: "blur", message: "请输入角色编码" }]
+const formRules: FormRules<CreateOrUpdateTableFormData> = {
+  name: [{ required: true, trigger: "blur", message: "请输入权限名称" }],
+  operationType: [{ required: true, trigger: "blur", message: "请输入权限编码" }],
+  routeName: [{ required: true, trigger: "blur", message: "请选择路由名称" }]
 }
 
 function handleCreateOrUpdate() {
@@ -37,9 +42,16 @@ function handleCreateOrUpdate() {
       ElMessage.error("表单校验不通过")
       return
     }
+
+    const requestData = {
+      id: formData.value.id,
+      name: formData.value.name,
+      code: `${formData.value.routeName}.${formData.value.operationType}`
+    }
+
     loading.value = true
     const api = formData.value.id === undefined ? createTableDataApi : updateTableDataApi
-    api(formData.value).then(() => {
+    api(requestData).then(() => {
       ElMessage.success("操作成功")
       dialogVisible.value = false
       getTableData()
@@ -56,9 +68,8 @@ function resetForm() {
 // #endregion
 
 // #region 删
-// id删除
 function handleDelete(row: TableData) {
-  ElMessageBox.confirm(`正在删除角色：${row.code}，确认删除？`, "提示", {
+  ElMessageBox.confirm(`正在删除权限：${row.code}，确认删除？`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
@@ -76,7 +87,7 @@ function handleSelectionChange(users: TableData[]) {
   selectedIds.value = users.map(user => user.id)
 }
 function handleBathDelete() {
-  ElMessageBox.confirm(`正在删除 ${selectedIds.value.length} 个角色，确认删除？`, "提示", {
+  ElMessageBox.confirm(`正在删除 ${selectedIds.value.length} 个权限，确认删除？`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
@@ -93,16 +104,12 @@ function handleBathDelete() {
 
 // #region 改
 function handleUpdate(row: TableData) {
-  formData.value = cloneDeep(row)
-  getPermissionIdsApi(formData.value.id!).then(({ data }) => {
-    // 数据回显，设置选中节点
-    formData.value.permissionIds = data
-    dialogVisible.value = true
-    // 不用nextTick，对话款首次渲染的时候会拿不到数据
-    nextTick(() => {
-      treeRef.value?.setCheckedKeys(data)
-    })
-  })
+  dialogVisible.value = true
+  const [routeName, operationType] = row.code.split(".")
+  formData.value.id = row.id
+  formData.value.routeName = routeName
+  formData.value.operationType = operationType
+  formData.value.name = row.name
 }
 // #endregion
 
@@ -112,7 +119,8 @@ const tableData = ref<TableData[]>([])
 const searchFormRef = useTemplateRef("searchFormRef")
 
 const searchData = reactive({
-  roleName: ""
+  routeName: "",
+  code: ""
 })
 
 function getTableData() {
@@ -120,7 +128,8 @@ function getTableData() {
   getTableDataApi({
     currentPage: paginationData.currentPage,
     pageSize: paginationData.pageSize,
-    roleName: searchData.roleName
+    routeName: searchData.routeName,
+    code: searchData.code
   }).then(({ data }) => {
     paginationData.total = data.total
     tableData.value = data.list
@@ -143,57 +152,17 @@ function resetSearch() {
 
 // 监听分页参数的变化
 watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
-
-// 树型控件ref
-const treeRef = ref<TreeInstance>()
-// 树节点数据
-const treeNodes = ref<TreeNodeData[]>([])
-// 树节点选中事件
-function handlerCheck(_: any, checkedInfo: CheckedInfo) {
-  // 非叶子节点key是string类型，叶子节点key是number类型，这样写会过滤掉非叶子节点
-  formData.value.permissionIds = checkedInfo.checkedKeys.map(key => Number(key)).filter(key => key) as number[]
-}
-
-// 初始化树节点
-function makeTree(routes: RouteRecordRaw[], permissionSelectorList: PermissionSelectorData[]) {
-  routes.forEach((route) => {
-    let hasPermission = false
-    const current: TreeNodeData = {
-      label: route.meta?.title,
-      value: route.name,
-      children: route.children || []
-    }
-    if (current.children.length === 0) {
-      permissionSelectorList.forEach((selector) => {
-        if (selector.routeName === route.name) {
-          hasPermission = true
-          current.children.push({
-            label: selector.name,
-            value: selector.id
-          })
-        }
-      })
-    } else {
-      makeTree(current.children, permissionSelectorList)
-    }
-    if (hasPermission) {
-      treeNodes.value.push(current)
-    }
-  })
-}
-onMounted(() => {
-  getPermissionSelectorApi().then(({ data }) => {
-    makeTree(dynamicRoutes, data)
-  })
-})
 </script>
 
 <template>
   <div class="app-container">
     <el-card v-loading="loading" shadow="never" class="search-wrapper">
       <el-form ref="searchFormRef" :inline="true" :model="searchData">
-        <el-form-item prop="username" label="角色名">
-          <el-input v-model="searchData.roleName" placeholder="请输入" />
+        <el-form-item prop="routeName" label="路由名称">
+          <MenuSelector v-model="searchData.routeName" />
+        </el-form-item>
+        <el-form-item prop="code" label="权限编码">
+          <el-input v-model="searchData.code" placeholder="请输入" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" @click="handleSearch">
@@ -209,9 +178,9 @@ onMounted(() => {
       <div class="toolbar-wrapper">
         <div>
           <el-button type="primary" :icon="CirclePlus" @click="dialogVisible = true">
-            新增角色
+            新增权限
           </el-button>
-          <el-button :disabled="selectedIds.length === 0" :icon="Delete" type="danger" @click="handleBathDelete">
+          <el-button type="danger" :icon="Delete" :disabled="selectedIds.length === 0" @click="handleBathDelete">
             批量删除
           </el-button>
         </div>
@@ -227,8 +196,8 @@ onMounted(() => {
       <div class="table-wrapper">
         <el-table :data="tableData" @selection-change="handleSelectionChange">
           <el-table-column type="selection" width="50" align="center" />
-          <el-table-column prop="name" label="角色名" align="center" />
-          <el-table-column prop="code" label="角色编码" align="center" />
+          <el-table-column prop="name" label="权限名称" align="center" />
+          <el-table-column prop="code" label="权限编码" align="center" />
           <el-table-column prop="updateTime" label="更新时间" align="center" />
           <el-table-column fixed="right" label="操作" width="150" align="center">
             <template #default="scope">
@@ -258,27 +227,25 @@ onMounted(() => {
     <!-- 新增/修改 -->
     <el-dialog
       v-model="dialogVisible"
-      :title="formData.id === undefined ? '新增角色' : '修改角色'"
+      :title="formData.id === undefined ? '新增权限' : '修改权限'"
       width="30%"
       @closed="resetForm"
     >
-      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" label-position="right">
-        <el-form-item prop="name" label="角色名">
+      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" label-position="left">
+        <el-form-item prop="routeName" label="路由名称">
+          <MenuSelector v-model="formData.routeName" />
+        </el-form-item>
+        <el-form-item prop="name" label="权限名称">
           <el-input v-model="formData.name" placeholder="请输入" />
         </el-form-item>
-        <el-form-item prop="code" label="角色编码">
-          <el-input v-model="formData.code" placeholder="请输入" />
-        </el-form-item>
-        <el-form-item prop="permissionIds" label="权限" max-width="600px">
-          <el-tree
-            @check="handlerCheck"
-            ref="treeRef"
-            highlight-current
-            :data="treeNodes"
-            show-checkbox
-            node-key="value"
-            style="width: 100%;"
-          />
+        <el-form-item prop="operationType" label="操作类型">
+          <el-select v-model="formData.operationType" placeholder="请选择">
+            <!-- todo: 暂时写死 -->
+            <el-option key="1" label="查询" value="select" />
+            <el-option key="2" label="新增" value="insert" />
+            <el-option key="3" label="修改" value="update" />
+            <el-option key="4" label="删除" value="delete" />
+          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>

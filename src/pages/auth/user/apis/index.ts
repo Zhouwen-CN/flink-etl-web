@@ -44,3 +44,19 @@ export function getTableDataApi(params: User.TableRequestData) {
     params
   })
 }
+
+/** 查询用户角色ID列表 */
+export function getRoleIdsDataApi(userId: number) {
+  return request<User.RoleIdsResponseData>({
+    url: `user/role/${userId}`,
+    method: "get"
+  })
+}
+
+/** 查角色选择器  */
+export function getRoleSelectorDataApi() {
+  return request<User.RoleSelectorResponseData>({
+    url: "user/role/selector",
+    method: "get"
+  })
+}

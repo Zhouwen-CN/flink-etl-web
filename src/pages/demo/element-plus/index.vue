@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import type { CreateOrUpdateTableRequestData, TableData } from "@@/apis/tables/type"
 import type { FormRules } from "element-plus"
-import { createTableDataApi, deleteTableDataApi, getTableDataApi, updateTableDataApi } from "@@/apis/tables"
+import type { CreateOrUpdateTableRequestData, TableData } from "./apis/type"
 import { usePagination } from "@@/composables/usePagination"
 import { CirclePlus, Delete, Download, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
+import { createTableDataApi, deleteTableDataApi, getTableDataApi, updateTableDataApi } from "./apis"
 
 defineOptions({
   // 命名当前组件

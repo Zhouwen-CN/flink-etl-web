@@ -40,15 +40,6 @@ export const useUserStore = defineStore("user", () => {
     permissions.value = data.permissions
   }
 
-  // 模拟角色变化
-  const changeRoles = (role: string) => {
-    const newToken = `token-${role}`
-    token.value = newToken
-    _setToken(newToken)
-    // 用刷新页面代替重新登录
-    location.reload()
-  }
-
   // 登出
   const logout = () => {
     removeToken()
@@ -73,7 +64,7 @@ export const useUserStore = defineStore("user", () => {
     }
   }
 
-  return { token, roles, userId, username, nickname, setToken, getInfo, changeRoles, logout, resetToken }
+  return { token, roles, permissions, userId, username, nickname, setToken, getInfo, logout, resetToken }
 })
 
 /**

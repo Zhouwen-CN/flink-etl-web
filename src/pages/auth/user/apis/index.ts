@@ -60,3 +60,19 @@ export function getRoleSelectorDataApi() {
     method: "get"
   })
 }
+
+/** 重置密码 */
+export function resetPasswordApi(id: number) {
+  return request({
+    url: `user/pwd/reset/${id}`,
+    method: "patch"
+  })
+}
+
+/** 下线用户 */
+export function revokeUserApi(id: number) {
+  return request({
+    url: `auth/revoke/${id}`,
+    method: "get"
+  })
+}

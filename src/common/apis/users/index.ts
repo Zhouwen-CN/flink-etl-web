@@ -11,8 +11,17 @@ export function getCurrentUserApi() {
 
 /** 退出登入 */
 export function logoutApi(id: number) {
-  return request<Users.LogoutResponseData>({
+  return request({
     url: `auth/logout/${id}`,
     method: "get"
+  })
+}
+
+/** 修改密码 */
+export function updatePasswordApi(data: Users.UpdatePasswordRequestData) {
+  return request({
+    url: "user/pwd/change",
+    method: "patch",
+    data
   })
 }

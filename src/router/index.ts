@@ -167,7 +167,7 @@ export const constantRoutes: RouteRecordRaw[] = [
 ]
 
 /**
- * @name 动态路由，name属性需要小写
+ * @name 动态路由，权限代码约定 routeName.operationType，由前端控制写入，routeName最好小写
  * @description 用来放置有权限 (Roles 属性) 的路由
  * @description 必须带有唯一的 Name 属性
  */
@@ -207,6 +207,26 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         name: "permission",
         meta: {
           title: "权限管理"
+        }
+      }
+    ]
+  },
+  {
+    path: "/log",
+    component: Layouts,
+    redirect: "/log/login",
+    meta: {
+      title: "日志管理",
+      elIcon: "Document",
+      alwaysShow: true
+    },
+    children: [
+      {
+        path: "login",
+        component: () => import("@/pages/log/login/index.vue"),
+        name: "login",
+        meta: {
+          title: "登录日志"
         }
       }
     ]

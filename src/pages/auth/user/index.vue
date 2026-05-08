@@ -4,7 +4,7 @@ import type { CreateOrUpdateTableRequestData, RoleSelectorData, TableData } from
 import { usePagination } from "@@/composables/usePagination"
 import { CirclePlus, Delete, Download, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
-import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getRoleIdsDataApi, getRoleSelectorDataApi, getTableDataApi, updateTableDataApi } from "./apis/index"
+import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getRoleIdsDataApi, getRoleSelectorDataApi, getTableDataApi, resetPasswordApi, revokeUserApi, updateTableDataApi } from "./apis/index"
 
 const loading = ref<boolean>(false)
 
@@ -138,6 +138,35 @@ function resetSearch() {
 }
 // #endregion
 
+// #region 重置密码
+function handleResetPassword(row: TableData) {
+  ElMessageBox.confirm(`正在重置用户密码：${row.username}，确认重置？`, "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning"
+  }).then(() => {
+    resetPasswordApi(row.id).then(() => {
+      ElMessage.success("重置成功")
+    })
+  })
+}
+// #endregion
+
+// #region 下线
+function handleRevoke(row: TableData) {
+  ElMessageBox.confirm(`正在下线用户：${row.username}，确认下线？`, "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning"
+  }).then(() => {
+    revokeUserApi(row.id).then(() => {
+      ElMessage.success("下线成功")
+      getTableData()
+    })
+  })
+}
+// #endregion
+
 // 监听分页参数的变化
 watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
 
@@ -192,7 +221,7 @@ onMounted(() => {
           <el-table-column prop="nickname" label="用户昵称" align="center" />
 
           <el-table-column prop="gender" label="性别" align="center" />
-          <el-table-column prop="isEnable" label="状态" align="center">
+          <el-table-column prop="status" label="状态" align="center">
             <template #default="scope">
               <el-tag v-if="scope.row.status" type="success" effect="plain" disable-transitions>
                 启用
@@ -203,10 +232,16 @@ onMounted(() => {
             </template>
           </el-table-column>
           <el-table-column prop="updateTime" label="更新时间" align="center" />
-          <el-table-column fixed="right" label="操作" width="150" align="center">
+          <el-table-column fixed="right" label="操作" width="250" align="center">
             <template #default="scope">
               <el-button type="primary" text bg size="small" @click="handleUpdate(scope.row)">
                 修改
+              </el-button>
+              <el-button type="warning" text bg size="small" @click="handleResetPassword(scope.row)">
+                重置
+              </el-button>
+              <el-button type="info" text bg size="small" @click="handleRevoke(scope.row)">
+                下线
               </el-button>
               <el-button type="danger" text bg size="small" @click="handleDelete(scope.row)">
                 删除

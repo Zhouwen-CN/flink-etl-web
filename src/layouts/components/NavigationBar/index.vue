@@ -1,11 +1,14 @@
 <script lang="ts" setup>
+import type { FormRules } from "element-plus"
+import type { UpdatePasswordRequestData } from "@/common/apis/users/type"
 import Screenfull from "@@/components/Screenfull/index.vue"
 import SearchMenu from "@@/components/SearchMenu/index.vue"
 import ThemeSwitch from "@@/components/ThemeSwitch/index.vue"
 import { useDevice } from "@@/composables/useDevice"
 import { useLayoutMode } from "@@/composables/useLayoutMode"
 import { UserFilled } from "@element-plus/icons-vue"
-import { logoutApi } from "@/common/apis/users"
+import { cloneDeep } from "lodash-es"
+import { logoutApi, updatePasswordApi } from "@/common/apis/users"
 import { useAppStore } from "@/pinia/stores/app"
 import { useSettingsStore } from "@/pinia/stores/settings"
 import { useUserStore } from "@/pinia/stores/user"
@@ -39,6 +42,46 @@ function logout() {
   userStore.logout()
   router.push("/login")
 }
+
+// #region 更新密码
+const dialogVisible = ref<boolean>(false)
+const loading = ref<boolean>(false)
+
+const DEFAULT_FORM_DATA: UpdatePasswordRequestData = {
+  oldPwd: "",
+  newPwd: "",
+  confirmPwd: ""
+}
+const formData = ref<UpdatePasswordRequestData>(cloneDeep(DEFAULT_FORM_DATA))
+
+const formRef = useTemplateRef("formRef")
+const formRules: FormRules<UpdatePasswordRequestData> = {
+  oldPwd: [{ required: true, trigger: "blur", message: "请输入旧密码" }],
+  newPwd: [{ required: true, trigger: "blur", message: "请输入新密码" }],
+  confirmPwd: [{ required: true, trigger: "blur", message: "请输入确认密码" }]
+}
+
+function handleUpdatePassword() {
+  formRef.value?.validate((valid) => {
+    if (!valid) {
+      ElMessage.error("表单校验不通过")
+      return
+    }
+    loading.value = true
+    updatePasswordApi(formData.value).then(() => {
+      ElMessage.success("操作成功")
+      dialogVisible.value = false
+    }).finally(() => {
+      loading.value = false
+    })
+  })
+}
+
+function resetForm() {
+  formRef.value?.clearValidate()
+  formData.value = cloneDeep(DEFAULT_FORM_DATA)
+}
+// #endregion 更新密码
 </script>
 
 <template>
@@ -62,19 +105,44 @@ function logout() {
         </div>
         <template #dropdown>
           <el-dropdown-menu>
-            <a target="_blank" href="https://github.com/un-pany/v3-admin-vite">
-              <el-dropdown-item>GitHub</el-dropdown-item>
-            </a>
-            <a target="_blank" href="https://gitee.com/un-pany/v3-admin-vite">
-              <el-dropdown-item>Gitee</el-dropdown-item>
-            </a>
-            <el-dropdown-item divided @click="logout">
+            <el-dropdown-item @click="dialogVisible = true">
+              修改密码
+            </el-dropdown-item>
+            <el-dropdown-item @click="logout">
               退出登录
             </el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
     </div>
+
+    <!-- 新增/修改 -->
+    <el-dialog
+      v-model="dialogVisible"
+      title="修改密码"
+      width="30%"
+      @closed="resetForm"
+    >
+      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" label-position="left">
+        <el-form-item prop="oldPwd" label="旧密码">
+          <el-input v-model="formData.oldPwd" type="password" placeholder="请输入" />
+        </el-form-item>
+        <el-form-item prop="newPwd" label="新密码">
+          <el-input v-model="formData.newPwd" type="password" placeholder="请输入" />
+        </el-form-item>
+        <el-form-item prop="confirmPwd" label="确认密码">
+          <el-input v-model="formData.confirmPwd" type="password" placeholder="请输入" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="loading" @click="handleUpdatePassword">
+          确认
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 

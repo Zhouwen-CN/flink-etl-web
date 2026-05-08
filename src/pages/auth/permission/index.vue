@@ -7,11 +7,6 @@ import { cloneDeep } from "lodash-es"
 import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getTableDataApi, updateTableDataApi } from "./apis"
 import MenuSelector from "./components/MenuSelector/index.vue"
 
-defineOptions({
-  // 命名当前组件
-  name: "ElementPlus"
-})
-
 const loading = ref<boolean>(false)
 
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()

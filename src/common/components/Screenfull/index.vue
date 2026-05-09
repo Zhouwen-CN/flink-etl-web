@@ -83,7 +83,7 @@ function handleContentFullClick() {
       <SvgIcon :name="fullscreenSvgName" @click="handleFullscreenClick" class="svg-icon" />
     </el-tooltip>
     <!-- 内容区 -->
-    <el-dropdown v-else :disabled="isFullscreen">
+    <el-dropdown v-else :disabled="isFullscreen" placement="bottom-end">
       <SvgIcon :name="contentLargeSvgName" class="svg-icon" />
       <template #dropdown>
         <el-dropdown-menu>

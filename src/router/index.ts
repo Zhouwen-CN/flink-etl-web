@@ -259,6 +259,14 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: {
           title: "登录日志"
         }
+      },
+      {
+        path: "error",
+        component: () => import("@/pages/log/error/index.vue"),
+        name: "error",
+        meta: {
+          title: "异常日志"
+        }
       }
     ]
   }

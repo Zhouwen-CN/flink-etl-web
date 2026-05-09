@@ -34,6 +34,8 @@ export const useTagsViewStore = defineStore("tags-view", () => {
   const addCachedView = (view: TagView) => {
     if (typeof view.name !== "string") return
     if (cachedViews.value.includes(view.name)) return
+    // iframe 页面的缓存由 v-show 控制，不需要加入 keep-alive
+    if (view.meta?.iframeUrl) return
     if (view.meta?.keepAlive) {
       cachedViews.value.push(view.name)
     }

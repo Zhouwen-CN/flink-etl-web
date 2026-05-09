@@ -53,5 +53,9 @@ declare module "vue-router" {
      * @description 默认为 false，为 true 时代表需要缓存，此时该路由和该页面都需要设置一致的 Name
      */
     keepAlive?: boolean
+    /**
+     * @description 内嵌 iframe 的 URL 地址，设置此字段即表示该路由为 iframe 页面
+     */
+    iframeUrl?: string
   }
 }

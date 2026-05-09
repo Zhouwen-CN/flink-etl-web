@@ -179,7 +179,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     name: "system",
     meta: {
       title: "系统管理",
-      elIcon: "Setting",
+      elIcon: "Lock",
       // 可以在根路由中设置角色
       roles: ["admin"],
       alwaysShow: true
@@ -207,6 +207,37 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         name: "permission",
         meta: {
           title: "权限管理"
+        }
+      }
+    ]
+  },
+  {
+    path: "/tool",
+    redirect: "/tool/admin",
+    meta: {
+      title: "系统工具",
+      elIcon: "Setting",
+      roles: ["admin"]
+    },
+    children: [
+      {
+        path: "admin",
+        component: Layouts,
+        name: "admin",
+        meta: {
+          title: "SpringBoot Admin",
+          iframeUrl: import.meta.env.VITE_SPRINGBOOT_ADMIN_URL,
+          keepAlive: true
+        }
+      },
+      {
+        path: "swagger",
+        component: Layouts,
+        name: "swagger-ui",
+        meta: {
+          title: "Swagger UI",
+          iframeUrl: import.meta.env.VITE_SWAGGER_URL,
+          keepAlive: true
         }
       }
     ]

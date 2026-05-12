@@ -267,6 +267,14 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: {
           title: "Jar 包管理"
         }
+      },
+      {
+        path: "job",
+        component: () => import("@/pages/etl/job/index.vue"),
+        name: "job",
+        meta: {
+          title: "ETL 任务"
+        }
       }
     ]
   },

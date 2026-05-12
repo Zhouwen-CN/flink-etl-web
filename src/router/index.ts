@@ -243,6 +243,34 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: "/etl",
+    component: Layouts,
+    redirect: "/etl/cluster",
+    meta: {
+      title: "ETL 管理",
+      elIcon: "Document",
+      roles: ["admin"]
+    },
+    children: [
+      {
+        path: "cluster",
+        component: () => import("@/pages/etl/cluster/index.vue"),
+        name: "cluster",
+        meta: {
+          title: "Flink 集群"
+        }
+      },
+      {
+        path: "jar",
+        component: () => import("@/pages/etl/jar/index.vue"),
+        name: "jar",
+        meta: {
+          title: "Jar 包管理"
+        }
+      }
+    ]
+  },
+  {
     path: "/log",
     component: Layouts,
     redirect: "/log/login",

@@ -15,8 +15,8 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 // #region 增
 const DEFAULT_FORM_DATA: CreateOrUpdateTableRequestData = {
   id: undefined,
-  name: "",
-  code: "",
+  name: undefined,
+  code: undefined,
   permissionIds: []
 }
 
@@ -58,7 +58,7 @@ function resetForm() {
 // #region 删
 // id删除
 function handleDelete(row: TableData) {
-  ElMessageBox.confirm(`正在删除角色：${row.code}，确认删除？`, "提示", {
+  ElMessageBox.confirm(`正在删除记录：${row.code}，确认删除？`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
@@ -76,7 +76,7 @@ function handleSelectionChange(users: TableData[]) {
   selectedIds.value = users.map(user => user.id)
 }
 function handleBathDelete() {
-  ElMessageBox.confirm(`正在删除 ${selectedIds.value.length} 个角色，确认删除？`, "提示", {
+  ElMessageBox.confirm(`正在删除 ${selectedIds.value.length} 条记录，确认删除？`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
@@ -209,7 +209,7 @@ onMounted(() => {
       <div class="toolbar-wrapper">
         <div>
           <el-button type="primary" :icon="CirclePlus" @click="dialogVisible = true">
-            新增角色
+            新增记录
           </el-button>
           <el-button :disabled="selectedIds.length === 0" :icon="Delete" type="danger" @click="handleBathDelete">
             批量删除
@@ -258,7 +258,7 @@ onMounted(() => {
     <!-- 新增/修改 -->
     <el-dialog
       v-model="dialogVisible"
-      :title="formData.id === undefined ? '新增角色' : '修改角色'"
+      :title="formData.id === undefined ? '新增' : '修改'"
       width="30%"
       @closed="resetForm"
     >

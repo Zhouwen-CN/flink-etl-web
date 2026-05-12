@@ -1,9 +1,9 @@
 export interface CreateOrUpdateTableRequestData {
   id?: number
-  name?: string
-  ip: string
-  port: number
-  status: boolean
+  typeId?: number
+  label?: string
+  value?: number
+  sortId: number
 }
 
 export interface DeleteBatchTableRequestData {
@@ -15,18 +15,17 @@ export interface TableRequestData {
   currentPage: number
   /** 查询条数 */
   pageSize: number
-  /** 查询参数：用户名 */
+  /** 查询参数：字典label */
   name?: string
+  typeId: number
 }
 
 export interface TableData {
   id: number
-  name: string
-  ip: string
-  port: number
-  version: string
-  status: boolean
-  updateTime: string
+  typeId: number
+  label: string
+  value: number
+  sortId: number
 }
 
 export type TableResponseData = ApiResponseData<{

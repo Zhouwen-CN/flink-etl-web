@@ -1,9 +1,9 @@
 export interface CreateOrUpdateTableRequestData {
   id?: number
-  username: string
+  username?: string
   password?: string
-  nickname: string
-  gender: string
+  nickname?: string
+  gender: number
   status: boolean
   roleIds?: number[]
 }
@@ -25,7 +25,7 @@ export interface TableData {
   id: number
   username: string
   nickname: string
-  gender: string
+  gender: number
   status: boolean
 }
 

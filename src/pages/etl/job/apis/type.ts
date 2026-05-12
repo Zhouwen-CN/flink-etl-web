@@ -1,4 +1,4 @@
-import type { DictionaryRequestData } from "@/common/composables/useDictionary"
+import type { DictionaryData } from "@/common/apis/dict/type"
 
 export interface CreateOrUpdateTableRequestData {
   id?: number
@@ -38,5 +38,5 @@ export type TableResponseData = ApiResponseData<{
   total: number
 }>
 
-export type ClusterSelectorDataResponseData = ApiResponseData<DictionaryRequestData[]>
-export type JarSelectorDataResponseData = ApiResponseData<DictionaryRequestData[]>
+export type ClusterSelectorDataResponseData = ApiResponseData<DictionaryData[]>
+export type JarSelectorDataResponseData = ApiResponseData<DictionaryData[]>

@@ -13,7 +13,7 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 // #region 增
 const DEFAULT_FORM_DATA: CreateOrUpdateTableRequestData = {
   id: undefined,
-  name: "",
+  name: undefined,
   ip: "127.0.0.1",
   port: 8081,
   status: false
@@ -26,9 +26,9 @@ const formRef = useTemplateRef("formRef")
 const formData = ref<CreateOrUpdateTableRequestData>(cloneDeep(DEFAULT_FORM_DATA))
 
 const formRules: FormRules<CreateOrUpdateTableRequestData> = {
-  name: [{ required: true, trigger: "blur", message: "请输入昵称" }],
-  ip: [{ required: true, trigger: "blur", message: "请输入IP" }],
-  port: [{ required: true, trigger: "blur", message: "请输入端口" }]
+  name: [{ required: true, trigger: "blur", message: "请输入集群名称" }],
+  ip: [{ required: true, trigger: "blur", message: "请输入集群IP地址" }],
+  port: [{ required: true, trigger: "blur", message: "请输入集群端口" }]
 }
 
 function handleCreateOrUpdate() {
@@ -58,7 +58,7 @@ function resetForm() {
 // #region 删
 // id删除
 function handleDelete(row: TableData) {
-  ElMessageBox.confirm(`正在删除集群：${row.name}，确认删除？`, "提示", {
+  ElMessageBox.confirm(`正在删除记录：${row.name}，确认删除？`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
@@ -76,7 +76,7 @@ function handleSelectionChange(users: TableData[]) {
   selectedIds.value = users.map(user => user.id)
 }
 function handleBathDelete() {
-  ElMessageBox.confirm(`正在删除 ${selectedIds.value.length} 个集群，确认删除？`, "提示", {
+  ElMessageBox.confirm(`正在删除 ${selectedIds.value.length} 条记录，确认删除？`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
@@ -158,7 +158,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
       <div class="toolbar-wrapper">
         <div>
           <el-button type="primary" :icon="CirclePlus" @click="dialogVisible = true">
-            新增集群
+            新增记录
           </el-button>
           <el-button :disabled="selectedIds.length === 0" :icon="Delete" type="danger" @click="handleBathDelete">
             批量删除
@@ -219,7 +219,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
     <!-- 新增/修改 -->
     <el-dialog
       v-model="dialogVisible"
-      :title="formData.id === undefined ? '新增集群' : '修改集群'"
+      :title="formData.id === undefined ? '新增' : '修改'"
       width="30%"
       @closed="resetForm"
     >

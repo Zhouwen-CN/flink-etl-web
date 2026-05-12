@@ -214,6 +214,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
   {
     path: "/tool",
     redirect: "/tool/admin",
+    component: Layouts,
     meta: {
       title: "系统工具",
       elIcon: "Setting",
@@ -222,22 +223,28 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     children: [
       {
         path: "admin",
-        component: Layouts,
         name: "admin",
         meta: {
           title: "SpringBoot Admin",
           iframeUrl: import.meta.env.VITE_SPRINGBOOT_ADMIN_URL,
           keepAlive: true
         }
-      },
+      } as RouteRecordRaw,
       {
         path: "swagger",
-        component: Layouts,
         name: "swagger-ui",
         meta: {
           title: "Swagger UI",
           iframeUrl: import.meta.env.VITE_SWAGGER_URL,
           keepAlive: true
+        }
+      } as RouteRecordRaw,
+      {
+        path: "dict",
+        component: () => import("@/pages/tool/dict/index.vue"),
+        name: "dict",
+        meta: {
+          title: "字典管理"
         }
       }
     ]

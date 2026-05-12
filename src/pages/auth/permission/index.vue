@@ -14,9 +14,9 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 // #region 增
 const DEFAULT_FORM_DATA: CreateOrUpdateTableFormData = {
   id: undefined,
-  name: "",
-  operationType: "",
-  routeName: ""
+  name: undefined,
+  operationType: undefined,
+  routeName: undefined
 }
 
 const dialogVisible = ref<boolean>(false)
@@ -64,7 +64,7 @@ function resetForm() {
 
 // #region 删
 function handleDelete(row: TableData) {
-  ElMessageBox.confirm(`正在删除权限：${row.code}，确认删除？`, "提示", {
+  ElMessageBox.confirm(`正在删除记录：${row.code}，确认删除？`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
@@ -82,7 +82,7 @@ function handleSelectionChange(users: TableData[]) {
   selectedIds.value = users.map(user => user.id)
 }
 function handleBathDelete() {
-  ElMessageBox.confirm(`正在删除 ${selectedIds.value.length} 个权限，确认删除？`, "提示", {
+  ElMessageBox.confirm(`正在删除 ${selectedIds.value.length} 条记录，确认删除？`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
@@ -173,7 +173,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
       <div class="toolbar-wrapper">
         <div>
           <el-button type="primary" :icon="CirclePlus" @click="dialogVisible = true">
-            新增权限
+            新增记录
           </el-button>
           <el-button type="danger" :icon="Delete" :disabled="selectedIds.length === 0" @click="handleBathDelete">
             批量删除
@@ -222,7 +222,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
     <!-- 新增/修改 -->
     <el-dialog
       v-model="dialogVisible"
-      :title="formData.id === undefined ? '新增权限' : '修改权限'"
+      :title="formData.id === undefined ? '新增' : '修改'"
       width="30%"
       @closed="resetForm"
     >
@@ -236,10 +236,10 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
         <el-form-item prop="operationType" label="操作类型">
           <el-select v-model="formData.operationType" placeholder="请选择">
             <!-- todo: 暂时写死 -->
-            <el-option key="1" label="查询" value="select" />
-            <el-option key="2" label="新增" value="insert" />
-            <el-option key="3" label="修改" value="update" />
-            <el-option key="4" label="删除" value="delete" />
+            <el-option key="1" label="select" value="select" />
+            <el-option key="2" label="insert" value="insert" />
+            <el-option key="3" label="update" value="update" />
+            <el-option key="4" label="delete" value="delete" />
           </el-select>
         </el-form-item>
       </el-form>

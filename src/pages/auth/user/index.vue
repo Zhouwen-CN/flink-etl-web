@@ -4,6 +4,8 @@ import type { CreateOrUpdateTableRequestData, RoleSelectorData, TableData } from
 import { usePagination } from "@@/composables/usePagination"
 import { CirclePlus, Delete, Download, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
+import { getDictionaryDataApi } from "@/common/apis/dict"
+import useDictionary from "@/common/composables/useDictionary"
 import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getRoleIdsDataApi, getRoleSelectorDataApi, getTableDataApi, resetPasswordApi, revokeUserApi, updateTableDataApi } from "./apis/index"
 
 const loading = ref<boolean>(false)
@@ -13,10 +15,10 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 // #region 增
 const DEFAULT_FORM_DATA: CreateOrUpdateTableRequestData = {
   id: undefined,
-  nickname: "",
-  username: "",
+  nickname: undefined,
+  username: undefined,
   password: undefined,
-  gender: "未知",
+  gender: 0,
   status: false,
   roleIds: []
 }
@@ -60,7 +62,7 @@ function resetForm() {
 // #region 删
 // id删除
 function handleDelete(row: TableData) {
-  ElMessageBox.confirm(`正在删除用户：${row.username}，确认删除？`, "提示", {
+  ElMessageBox.confirm(`正在删除记录：${row.username}，确认删除？`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
@@ -78,7 +80,7 @@ function handleSelectionChange(users: TableData[]) {
   selectedIds.value = users.map(user => user.id)
 }
 function handleBathDelete() {
-  ElMessageBox.confirm(`正在删除 ${selectedIds.value.length} 个用户，确认删除？`, "提示", {
+  ElMessageBox.confirm(`正在删除 ${selectedIds.value.length} 条记录，确认删除？`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
@@ -170,11 +172,14 @@ function handleRevoke(row: TableData) {
 // 监听分页参数的变化
 watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
 
+const { dictData, dictMap, run } = useDictionary(getDictionaryDataApi)
+
 const roleSelectorData = ref<RoleSelectorData[]>([])
 onMounted(() => {
   getRoleSelectorDataApi().then(({ data }) => {
     roleSelectorData.value = data
   })
+  run("gender")
 })
 </script>
 
@@ -199,7 +204,7 @@ onMounted(() => {
       <div class="toolbar-wrapper">
         <div>
           <el-button type="primary" :icon="CirclePlus" @click="dialogVisible = true">
-            新增用户
+            新增记录
           </el-button>
           <el-button :disabled="selectedIds.length === 0" :icon="Delete" type="danger" @click="handleBathDelete">
             批量删除
@@ -219,8 +224,11 @@ onMounted(() => {
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column prop="username" label="用户名" align="center" />
           <el-table-column prop="nickname" label="用户昵称" align="center" />
-
-          <el-table-column prop="gender" label="性别" align="center" />
+          <el-table-column prop="gender" label="性别" align="center">
+            <template #default="scope">
+              {{ dictMap.get(scope.row.gender) }}
+            </template>
+          </el-table-column>
           <el-table-column prop="status" label="状态" align="center">
             <template #default="scope">
               <el-tag v-if="scope.row.status" type="success" effect="plain" disable-transitions>
@@ -266,7 +274,7 @@ onMounted(() => {
     <!-- 新增/修改 -->
     <el-dialog
       v-model="dialogVisible"
-      :title="formData.id === undefined ? '新增用户' : '修改用户'"
+      :title="formData.id === undefined ? '新增' : '修改'"
       width="30%"
       @closed="resetForm"
     >
@@ -281,14 +289,9 @@ onMounted(() => {
           <el-input v-model="formData.password" placeholder="请输入" type="password" />
         </el-form-item>
         <el-form-item prop="gender" label="性别">
-          <el-radio-group v-model="formData.gender">
-            <el-radio label="男">
-              男
-            </el-radio>
-            <el-radio label="女">
-              女
-            </el-radio>
-          </el-radio-group>
+          <el-select v-model="formData.gender" placeholder="请选择">
+            <el-option v-for="item in dictData" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item prop="status" label="状态">
           <el-switch

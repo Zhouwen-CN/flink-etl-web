@@ -12,7 +12,7 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 
 // #region 增
 const DEFAULT_FORM_DATA: CreateTableRequestData = {
-  name: "",
+  name: undefined,
   file: undefined
 }
 
@@ -34,15 +34,10 @@ function handleCreate() {
       return
     }
 
-    if (!formData.value.file) {
-      ElMessage.error("请上传文件")
-      return
-    }
-
     loading.value = true
 
     const form = new FormData()
-    form.append("name", formData.value.name)
+    form.append("name", formData.value.name!)
     form.append("file", formData.value.file?.raw as Blob)
     createTableDataApi(form).then(() => {
       ElMessage.success("操作成功")
@@ -64,7 +59,7 @@ function resetForm() {
 // #region 删
 // id删除
 function handleDelete(row: TableData) {
-  ElMessageBox.confirm(`正在删除Jar：${row.name}，确认删除？`, "提示", {
+  ElMessageBox.confirm(`正在删除记录：${row.name}，确认删除？`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
@@ -82,7 +77,7 @@ function handleSelectionChange(users: TableData[]) {
   selectedIds.value = users.map(user => user.id)
 }
 function handleBathDelete() {
-  ElMessageBox.confirm(`正在删除 ${selectedIds.value.length} 个Jar，确认删除？`, "提示", {
+  ElMessageBox.confirm(`正在删除 ${selectedIds.value.length} 条记录，确认删除？`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
@@ -143,7 +138,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
   <div class="app-container">
     <el-card v-loading="loading" shadow="never" class="search-wrapper">
       <el-form ref="searchFormRef" :inline="true" :model="searchData">
-        <el-form-item prop="name" label="集群名称">
+        <el-form-item prop="name" label="Jar包名称">
           <el-input v-model="searchData.name" placeholder="请输入" />
         </el-form-item>
         <el-form-item>
@@ -160,7 +155,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
       <div class="toolbar-wrapper">
         <div>
           <el-button type="primary" :icon="CirclePlus" @click="dialogVisible = true">
-            新增Jar
+            新增记录
           </el-button>
           <el-button :disabled="selectedIds.length === 0" :icon="Delete" type="danger" @click="handleBathDelete">
             批量删除
@@ -207,7 +202,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
     <!-- 新增/修改 -->
     <el-dialog
       v-model="dialogVisible"
-      title="新增Jar"
+      title="新增"
       width="30%"
       @closed="resetForm"
     >
@@ -215,7 +210,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
         <el-form-item prop="name" label="Jar包名称">
           <el-input v-model="formData.name" placeholder="请输入" />
         </el-form-item>
-        <el-form-item prop="path" label="Jar包上传">
+        <el-form-item prop="path" label="Jar包文件">
           <el-upload
             ref="uploadRef"
             :auto-upload="false"

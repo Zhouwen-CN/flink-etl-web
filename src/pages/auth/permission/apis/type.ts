@@ -1,10 +1,10 @@
 export interface CreateOrUpdateTableFormData {
   id?: number
-  name: string
+  name?: string
   /** 操作类型 */
-  operationType: string
+  operationType?: string
   /** 路由名称 */
-  routeName: string
+  routeName?: string
 }
 
 export type CreateOrUpdateTableRequestData = Pick<CreateOrUpdateTableFormData, "id" | "name"> & {

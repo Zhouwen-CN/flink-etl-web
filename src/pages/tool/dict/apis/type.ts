@@ -1,8 +1,7 @@
 export interface CreateOrUpdateTableRequestData {
   id?: number
   name?: string
-  ip: string
-  port: number
+  remark?: string
   status: boolean
 }
 
@@ -15,16 +14,14 @@ export interface TableRequestData {
   currentPage: number
   /** 查询条数 */
   pageSize: number
-  /** 查询参数：用户名 */
+  /** 查询参数：字典名称 */
   name?: string
 }
 
 export interface TableData {
   id: number
   name: string
-  ip: string
-  port: number
-  version: string
+  remark: string
   status: boolean
   updateTime: string
 }

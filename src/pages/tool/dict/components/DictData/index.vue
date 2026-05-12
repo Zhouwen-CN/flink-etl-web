@@ -4,9 +4,7 @@ import type { CreateOrUpdateTableRequestData, TableData } from "./apis/type"
 import { usePagination } from "@@/composables/usePagination"
 import { CirclePlus, Delete, Download, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
-import { getDictionaryDataApi } from "@/common/apis/dict"
-import useDictionary from "@/common/composables/useDictionary"
-import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getClusterSelectorDataApi, getJarSelectorDataApi, getTableDataApi, updateTableDataApi } from "./apis/index"
+import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getTableDataApi, updateTableDataApi } from "./apis/index"
 
 const loading = ref<boolean>(false)
 
@@ -15,11 +13,10 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 // #region 增
 const DEFAULT_FORM_DATA: CreateOrUpdateTableRequestData = {
   id: undefined,
-  name: undefined,
-  clusterId: undefined,
-  jarId: undefined,
-  config: undefined,
-  type: undefined
+  typeId: undefined,
+  label: undefined,
+  value: undefined,
+  sortId: 0
 }
 
 const dialogVisible = ref<boolean>(false)
@@ -29,11 +26,9 @@ const formRef = useTemplateRef("formRef")
 const formData = ref<CreateOrUpdateTableRequestData>(cloneDeep(DEFAULT_FORM_DATA))
 
 const formRules: FormRules<CreateOrUpdateTableRequestData> = {
-  name: [{ required: true, trigger: "blur", message: "请输入昵称" }],
-  clusterId: [{ required: true, trigger: "blur", message: "请选择集群ID" }],
-  jarId: [{ required: true, trigger: "blur", message: "请选择JarID" }],
-  config: [{ required: true, trigger: "blur", message: "请输入配置" }],
-  type: [{ required: true, trigger: "blur", message: "请选择任务类型" }]
+  label: [{ required: true, trigger: "blur", message: "请输入字典标签" }],
+  value: [{ required: true, trigger: "blur", message: "请输入字典值" }],
+  sortId: [{ required: true, trigger: "blur", message: "请输入排序ID" }]
 }
 
 function handleCreateOrUpdate() {
@@ -56,14 +51,17 @@ function handleCreateOrUpdate() {
 
 function resetForm() {
   formRef.value?.clearValidate()
-  formData.value = cloneDeep(DEFAULT_FORM_DATA)
+  formData.value.id = DEFAULT_FORM_DATA.id
+  formData.value.label = DEFAULT_FORM_DATA.label
+  formData.value.value = DEFAULT_FORM_DATA.value
+  formData.value.sortId = DEFAULT_FORM_DATA.sortId
 }
 // #endregion
 
 // #region 删
 // id删除
 function handleDelete(row: TableData) {
-  ElMessageBox.confirm(`正在删除记录：${row.name}，确认删除？`, "提示", {
+  ElMessageBox.confirm(`正在删除记录：${row.label}，确认删除？`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
@@ -109,7 +107,8 @@ const tableData = ref<TableData[]>([])
 const searchFormRef = useTemplateRef("searchFormRef")
 
 const searchData = reactive({
-  name: ""
+  name: "",
+  typeId: -1
 })
 
 function getTableData() {
@@ -117,7 +116,8 @@ function getTableData() {
   getTableDataApi({
     currentPage: paginationData.currentPage,
     pageSize: paginationData.pageSize,
-    name: searchData.name
+    name: searchData.name,
+    typeId: searchData.typeId
   }).then(({ data }) => {
     paginationData.total = data.total
     tableData.value = data.list
@@ -139,23 +139,27 @@ function resetSearch() {
 // #endregion
 
 // 监听分页参数的变化
-watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
+watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData)
 
-const { dictData: clusterSelectorData, dictMap: clusterSelectorMap, run: getClusterSelectorData } = useDictionary(getClusterSelectorDataApi)
-const { dictData: jarSelectorData, dictMap: jarSelectorMap, run: getJarSelectorData } = useDictionary(getJarSelectorDataApi)
-const { dictData: jobTypeSelectorData, dictMap: jobTypeSelectorMap, run: getJobTypeSelectorData } = useDictionary(getDictionaryDataApi)
-onMounted(() => {
-  getClusterSelectorData()
-  getJarSelectorData()
-  getJobTypeSelectorData("job_type")
+// 打开抽屉
+const drawer = ref<boolean>(false)
+function showDrawer(typeId: number) {
+  drawer.value = true
+  formData.value.typeId = typeId
+  searchData.typeId = typeId
+  getTableData()
+}
+
+defineExpose({
+  showDrawer
 })
 </script>
 
 <template>
-  <div class="app-container">
+  <el-drawer v-model="drawer" title="字典数据" size="50%">
     <el-card v-loading="loading" shadow="never" class="search-wrapper">
       <el-form ref="searchFormRef" :inline="true" :model="searchData">
-        <el-form-item prop="name" label="任务名称">
+        <el-form-item prop="name" label="字典标签">
           <el-input v-model="searchData.name" placeholder="请输入" />
         </el-form-item>
         <el-form-item>
@@ -190,24 +194,9 @@ onMounted(() => {
       <div class="table-wrapper">
         <el-table :data="tableData" @selection-change="handleSelectionChange">
           <el-table-column type="selection" width="50" align="center" />
-          <el-table-column prop="name" label="任务名称" align="center" />
-          <el-table-column prop="type" label="任务类型" align="center">
-            <template #default="scope">
-              {{ jobTypeSelectorMap.get(scope.row.type) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="clusterId" label="flink集群" align="center">
-            <template #default="scope">
-              {{ clusterSelectorMap.get(scope.row.clusterId) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="jarId" label="jar包" align="center">
-            <template #default="scope">
-              {{ jarSelectorMap.get(scope.row.jarId) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="status" label="任务状态" align="center" />
-          <el-table-column prop="updateTime" label="更新时间" align="center" />
+          <el-table-column prop="label" label="字典标签" align="center" />
+          <el-table-column prop="value" label="字典值" align="center" />
+          <el-table-column prop="sortId" label="排序" align="center" />
           <el-table-column fixed="right" label="操作" width="250" align="center">
             <template #default="scope">
               <el-button type="primary" text bg size="small" @click="handleUpdate(scope.row)">
@@ -241,30 +230,14 @@ onMounted(() => {
       @closed="resetForm"
     >
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" label-position="right">
-        <el-form-item prop="name" label="任务名称">
-          <el-input v-model="formData.name" placeholder="请输入" />
+        <el-form-item prop="label" label="字典标签">
+          <el-input v-model="formData.label" placeholder="请输入" />
         </el-form-item>
-        <el-form-item prop="type" label="任务类型">
-          <el-select v-model="formData.type" placeholder="请选择">
-            <el-option v-for="item in jobTypeSelectorData" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
+        <el-form-item prop="value" label="字典值">
+          <el-input v-model="formData.value" placeholder="请输入" />
         </el-form-item>
-        <el-form-item prop="clusterId" label="flink集群">
-          <el-select v-model="formData.clusterId" placeholder="请选择">
-            <el-option v-for="item in clusterSelectorData" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item prop="jarId" label="jar包">
-          <el-select v-model="formData.jarId" placeholder="请选择">
-            <el-option v-for="item in jarSelectorData" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item prop="config" label="任务配置">
-          <el-input
-            v-model="formData.config"
-            :autosize="{ minRows: 5, maxRows: 10 }"
-            type="textarea" placeholder="请输入"
-          />
+        <el-form-item prop="sortId" label="排序">
+          <el-input v-model="formData.sortId" type="number" placeholder="请输入" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -276,7 +249,7 @@ onMounted(() => {
         </el-button>
       </template>
     </el-dialog>
-  </div>
+  </el-drawer>
 </template>
 
 <style lang="scss" scoped>

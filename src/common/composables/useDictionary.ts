@@ -1,10 +1,7 @@
-export interface DictionaryRequestData {
-  label: string
-  value: number
-}
+import type { DictionaryData, DictionaryResponseData } from "@/common/apis/dict/type"
 
-function useDictionary(func: (...args: any[]) => Promise<ApiResponseData<DictionaryRequestData[]>>) {
-  const dictData = ref<DictionaryRequestData[]>([])
+function useDictionary(func: (...args: any[]) => Promise<DictionaryResponseData>) {
+  const dictData = ref<DictionaryData[]>([])
   const dictMap = ref<Map<number, string>>(new Map<number, string>())
 
   function run(...args: any[]) {

@@ -155,35 +155,47 @@ function handlerCheck(_: any, checkedInfo: CheckedInfo) {
 }
 
 // 初始化树节点
-function makeTree(routes: RouteRecordRaw[], permissionSelectorList: PermissionSelectorData[]) {
+function makeTree(routes: RouteRecordRaw[], permissionSelectorList: PermissionSelectorData[]): TreeNodeData[] {
+  const result: TreeNodeData[] = []
+
   routes.forEach((route) => {
     let hasPermission = false
-    const current: TreeNodeData = {
-      label: route.meta?.title,
-      value: route.name,
-      children: route.children || []
-    }
-    if (current.children.length === 0) {
+    const children: TreeNodeData[] = []
+
+    if (route.children && route.children.length > 0) {
+      // 有子路由，递归处理
+      const subTree = makeTree(route.children, permissionSelectorList)
+      if (subTree.length > 0) {
+        hasPermission = true
+        children.push(...subTree)
+      }
+    } else {
+      // 叶子节点：检查权限
       permissionSelectorList.forEach((selector) => {
         if (selector.routeName === route.name) {
           hasPermission = true
-          current.children.push({
+          children.push({
             label: selector.name,
             value: selector.id
           })
         }
       })
-    } else {
-      makeTree(current.children, permissionSelectorList)
     }
+
     if (hasPermission) {
-      treeNodes.value.push(current)
+      result.push({
+        label: route.meta?.title,
+        value: route.name,
+        children
+      })
     }
   })
+
+  return result
 }
 onMounted(() => {
   getPermissionSelectorApi().then(({ data }) => {
-    makeTree(dynamicRoutes, data)
+    treeNodes.value = makeTree(dynamicRoutes, data)
   })
 })
 </script>

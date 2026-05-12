@@ -218,7 +218,8 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     meta: {
       title: "系统工具",
       elIcon: "Setting",
-      roles: ["admin"]
+      roles: ["admin", "dev"],
+      alwaysShow: true
     },
     children: [
       {
@@ -228,6 +229,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           title: "SpringBoot Admin",
           iframeUrl: import.meta.env.VITE_SPRINGBOOT_ADMIN_URL,
           keepAlive: true
+
         }
       } as RouteRecordRaw,
       {
@@ -256,7 +258,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     meta: {
       title: "ETL 管理",
       elIcon: "Document",
-      roles: ["admin"]
+      alwaysShow: true
     },
     children: [
       {
@@ -264,7 +266,8 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         component: () => import("@/pages/etl/cluster/index.vue"),
         name: "cluster",
         meta: {
-          title: "Flink 集群"
+          title: "Flink 集群",
+          roles: ["admin"]
         }
       },
       {
@@ -272,7 +275,8 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         component: () => import("@/pages/etl/jar/index.vue"),
         name: "jar",
         meta: {
-          title: "Jar 包管理"
+          title: "Jar 包管理",
+          roles: ["admin"]
         }
       },
       {
@@ -280,7 +284,8 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         component: () => import("@/pages/etl/job/index.vue"),
         name: "job",
         meta: {
-          title: "ETL 任务"
+          title: "ETL 任务",
+          roles: ["admin", "dev"]
         }
       }
     ]

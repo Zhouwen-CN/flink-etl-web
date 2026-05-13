@@ -21,7 +21,7 @@ export interface TableRequestData {
 export interface TableData {
   id: number
   name: string
-  path: string
+  fileName: string
   mainClass: string
   updateTime: string
 }

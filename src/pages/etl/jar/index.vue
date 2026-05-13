@@ -174,7 +174,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
         <el-table :data="tableData" @selection-change="handleSelectionChange">
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column prop="name" label="Jar名称" align="center" />
-          <el-table-column prop="path" label="Jar路径" align="center" />
+          <el-table-column prop="fileName" label="Jar文件名" align="center" />
           <el-table-column prop="mainClass" label="主类名" align="center" />
           <el-table-column prop="updateTime" label="更新时间" align="center" />
           <el-table-column fixed="right" label="操作" width="250" align="center">

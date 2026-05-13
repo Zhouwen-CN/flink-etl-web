@@ -235,7 +235,6 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
         </el-form-item>
         <el-form-item prop="operationType" label="操作类型">
           <el-select v-model="formData.operationType" placeholder="请选择">
-            <!-- todo: 暂时写死 -->
             <el-option key="1" label="select" value="select" />
             <el-option key="2" label="insert" value="insert" />
             <el-option key="3" label="update" value="update" />

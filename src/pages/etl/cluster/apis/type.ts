@@ -1,8 +1,7 @@
 export interface CreateOrUpdateTableRequestData {
   id?: number
   name?: string
-  ip: string
-  port: number
+  jobManagerUrl: string
   status: boolean
 }
 
@@ -22,8 +21,7 @@ export interface TableRequestData {
 export interface TableData {
   id: number
   name: string
-  ip: string
-  port: number
+  jobManagerUrl: string
   version: string
   status: boolean
   updateTime: string

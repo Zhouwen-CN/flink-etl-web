@@ -60,3 +60,10 @@ export function getJarSelectorDataApi() {
     method: "get"
   })
 }
+
+export function getRunJobApi(id: number) {
+  return request({
+    url: `etl/job/${id}`,
+    method: "get"
+  })
+}

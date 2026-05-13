@@ -14,8 +14,7 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 const DEFAULT_FORM_DATA: CreateOrUpdateTableRequestData = {
   id: undefined,
   name: undefined,
-  ip: "127.0.0.1",
-  port: 8081,
+  jobManagerUrl: "http://127.0.0.1:8081",
   status: false
 }
 
@@ -27,8 +26,7 @@ const formData = ref<CreateOrUpdateTableRequestData>(cloneDeep(DEFAULT_FORM_DATA
 
 const formRules: FormRules<CreateOrUpdateTableRequestData> = {
   name: [{ required: true, trigger: "blur", message: "请输入集群名称" }],
-  ip: [{ required: true, trigger: "blur", message: "请输入集群IP地址" }],
-  port: [{ required: true, trigger: "blur", message: "请输入集群端口" }]
+  jobManagerUrl: [{ required: true, trigger: "blur", message: "请输入集群JobManager URL" }]
 }
 
 function handleCreateOrUpdate() {
@@ -177,8 +175,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
         <el-table :data="tableData" @selection-change="handleSelectionChange">
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column prop="name" label="集群名称" align="center" />
-          <el-table-column prop="ip" label="IP地址" align="center" />
-          <el-table-column prop="port" label="端口" align="center" />
+          <el-table-column prop="jobManagerUrl" label="集群地址" align="center" />
           <el-table-column prop="version" label="版本" align="center" />
           <el-table-column prop="status" label="状态" align="center">
             <template #default="scope">
@@ -227,11 +224,8 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
         <el-form-item prop="name" label="集群名称">
           <el-input v-model="formData.name" placeholder="请输入" />
         </el-form-item>
-        <el-form-item prop="ip" label="IP地址">
-          <el-input v-model="formData.ip" placeholder="请输入" />
-        </el-form-item>
-        <el-form-item v-if="formData.id === undefined" prop="port" label="端口">
-          <el-input v-model="formData.port" type="number" placeholder="请输入" />
+        <el-form-item prop="jobManagerUrl" label="集群地址">
+          <el-input v-model="formData.jobManagerUrl" placeholder="请输入" />
         </el-form-item>
         <el-form-item prop="status" label="状态">
           <el-switch

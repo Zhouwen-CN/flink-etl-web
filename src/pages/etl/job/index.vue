@@ -6,7 +6,7 @@ import { CirclePlus, Delete, Download, Refresh, RefreshRight, Search } from "@el
 import { cloneDeep } from "lodash-es"
 import { getDictionaryDataApi } from "@/common/apis/dict"
 import useDictionary from "@/common/composables/useDictionary"
-import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getClusterSelectorDataApi, getJarSelectorDataApi, getTableDataApi, updateTableDataApi } from "./apis/index"
+import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getClusterSelectorDataApi, getJarSelectorDataApi, getRunJobApi, getTableDataApi, updateTableDataApi } from "./apis/index"
 
 const loading = ref<boolean>(false)
 
@@ -138,6 +138,21 @@ function resetSearch() {
 }
 // #endregion
 
+function handleRun(row: TableData) {
+  ElMessageBox.confirm(`正在运行 ${row.name} 任务，确认运行？`, "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning"
+  }).then(() => {
+    loading.value = true
+    getRunJobApi(row.id).then(() => {
+      ElMessage.success("运行成功")
+    }).finally(() => {
+      loading.value = false
+    })
+  })
+}
+
 // 监听分页参数的变化
 watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
 
@@ -210,6 +225,9 @@ onMounted(() => {
           <el-table-column prop="updateTime" label="更新时间" align="center" />
           <el-table-column fixed="right" label="操作" width="250" align="center">
             <template #default="scope">
+              <el-button type="primary" text bg size="small" @click="handleRun(scope.row)">
+                运行
+              </el-button>
               <el-button type="primary" text bg size="small" @click="handleUpdate(scope.row)">
                 修改
               </el-button>

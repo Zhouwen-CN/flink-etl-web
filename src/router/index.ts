@@ -287,6 +287,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           title: "ETL 任务",
           roles: ["admin", "dev"]
         }
+      },
+      {
+        path: "instance",
+        component: () => import("@/pages/etl/instance/index.vue"),
+        name: "instance",
+        meta: {
+          title: "任务实例",
+          roles: ["admin", "dev"]
+        }
       }
     ]
   },

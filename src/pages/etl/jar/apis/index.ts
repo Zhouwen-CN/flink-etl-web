@@ -30,6 +30,18 @@ export function deleteBatchTableDataApi(params: User.DeleteBatchTableRequestData
   })
 }
 
+/** 改 */
+export function updateTableDataApi(data: FormData) {
+  return request({
+    url: "jar",
+    method: "put",
+    headers: {
+      "Content-Type": "multipart/form-data"
+    },
+    data
+  })
+}
+
 /** 查 */
 export function getTableDataApi(params: User.TableRequestData) {
   return request<User.TableResponseData>({

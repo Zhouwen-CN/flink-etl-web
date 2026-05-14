@@ -2,7 +2,7 @@ import type { DictionaryData, DictionaryResponseData } from "@/common/apis/dict/
 
 function useDictionary(func: (...args: any[]) => Promise<DictionaryResponseData>) {
   const dictData = ref<DictionaryData[]>([])
-  const dictMap = ref<Map<number, string>>(new Map<number, string>())
+  const dictMap = ref<Map<number | string, string>>(new Map<number | string, string>())
 
   function run(...args: any[]) {
     func(...args)

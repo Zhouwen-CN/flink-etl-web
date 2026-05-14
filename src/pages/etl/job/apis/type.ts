@@ -38,5 +38,10 @@ export type TableResponseData = ApiResponseData<{
   total: number
 }>
 
+export interface RunJobRequestData {
+  id?: number
+  savepointPath?: string
+}
+
 export type ClusterSelectorDataResponseData = ApiResponseData<DictionaryData[]>
 export type JarSelectorDataResponseData = ApiResponseData<DictionaryData[]>

@@ -1,6 +1,6 @@
 export interface DictionaryData {
   label: string
-  value: number
+  value: number | string
 }
 
 export type DictionaryResponseData = ApiResponseData<DictionaryData[]>

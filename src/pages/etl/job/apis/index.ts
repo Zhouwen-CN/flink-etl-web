@@ -61,9 +61,11 @@ export function getJarSelectorDataApi() {
   })
 }
 
-export function getRunJobApi(id: number) {
+/** 运行任务 */
+export function getRunJobApi(params: User.RunJobRequestData) {
   return request({
-    url: `job/${id}`,
-    method: "get"
+    url: "job/run",
+    method: "post",
+    params
   })
 }

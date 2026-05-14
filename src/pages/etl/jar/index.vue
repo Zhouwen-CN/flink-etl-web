@@ -4,7 +4,7 @@ import type { CreateTableRequestData, TableData } from "./apis/type"
 import { usePagination } from "@@/composables/usePagination"
 import { CirclePlus, Delete, Download, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
-import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getTableDataApi } from "./apis/index"
+import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getTableDataApi, updateTableDataApi } from "./apis/index"
 
 const loading = ref<boolean>(false)
 
@@ -12,6 +12,7 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 
 // #region 增
 const DEFAULT_FORM_DATA: CreateTableRequestData = {
+  id: undefined,
   name: undefined,
   file: undefined
 }
@@ -23,23 +24,26 @@ const formRef = useTemplateRef("formRef")
 const formData = ref<CreateTableRequestData>(cloneDeep(DEFAULT_FORM_DATA))
 
 const formRules: FormRules<CreateTableRequestData> = {
-  name: [{ required: true, trigger: "blur", message: "请输入昵称" }],
-  file: [{ required: true, trigger: "submit", message: "请上传文件" }]
+  name: [{ required: true, trigger: "blur", message: "请输入昵称" }]
 }
 
-function handleCreate() {
+function handleCreateOrUpdate() {
   formRef.value?.validate((valid) => {
-    if (!valid) {
+    if (!valid || !formData.value.file) {
       ElMessage.error("表单校验不通过")
       return
     }
 
     loading.value = true
-
     const form = new FormData()
+    const id = formData.value.id
+    if (id) {
+      form.append("id", formData.value.id!.toString())
+    }
     form.append("name", formData.value.name!)
     form.append("file", formData.value.file?.raw as Blob)
-    createTableDataApi(form).then(() => {
+    const api = formData.value.id === undefined ? createTableDataApi : updateTableDataApi
+    api(form).then(() => {
       ElMessage.success("操作成功")
       dialogVisible.value = false
       getTableData()
@@ -89,6 +93,13 @@ function handleBathDelete() {
       getTableData()
     })
   })
+}
+// #endregion
+
+// #region 改
+function handleUpdate(row: TableData) {
+  dialogVisible.value = true
+  formData.value = cloneDeep(row)
 }
 // #endregion
 
@@ -179,6 +190,9 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
           <el-table-column prop="updateTime" label="更新时间" align="center" />
           <el-table-column fixed="right" label="操作" width="250" align="center">
             <template #default="scope">
+              <el-button type="primary" text bg size="small" @click="handleUpdate(scope.row)">
+                修改
+              </el-button>
               <el-button type="danger" text bg size="small" @click="handleDelete(scope.row)">
                 删除
               </el-button>
@@ -230,7 +244,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
         <el-button @click="dialogVisible = false">
           取消
         </el-button>
-        <el-button type="primary" :loading="loading" @click="handleCreate">
+        <el-button type="primary" :loading="loading" @click="handleCreateOrUpdate">
           确认
         </el-button>
       </template>

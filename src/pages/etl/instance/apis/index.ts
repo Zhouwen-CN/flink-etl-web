@@ -42,3 +42,19 @@ export function getJarSelectorDataApi() {
     method: "get"
   })
 }
+
+/** 停止任务 */
+export function getStopjobDataApi(instanceId: string) {
+  return request({
+    url: `instance/job/cancel/${instanceId}`,
+    method: "post"
+  })
+}
+
+/** 删除任务实例 */
+export function deleteJobInstanceDataApi(id: string) {
+  return request({
+    url: `instance/${id}`,
+    method: "delete"
+  })
+}

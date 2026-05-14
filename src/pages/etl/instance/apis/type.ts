@@ -4,6 +4,7 @@ export interface TableRequestData {
   /** 查询条数 */
   pageSize: number
   /** 查询参数 */
+  instanceId?: string
   clusterId?: number
   jobId?: number
   jobType?: number
@@ -11,7 +12,7 @@ export interface TableRequestData {
 }
 
 export interface TableData {
-  id: number
+  id: string
   clusterId: number
   jarId: number
   jobId: number

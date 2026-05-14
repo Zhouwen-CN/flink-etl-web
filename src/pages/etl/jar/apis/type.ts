@@ -1,6 +1,7 @@
 import type { UploadUserFile } from "element-plus"
 
 export interface CreateTableRequestData {
+  id?: number
   name?: string
   file?: UploadUserFile
 }

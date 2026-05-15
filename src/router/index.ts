@@ -138,31 +138,6 @@ export const constantRoutes: RouteRecordRaw[] = [
         ]
       }
     ]
-  },
-  {
-    path: "/link",
-    meta: {
-      title: "文档链接",
-      elIcon: "Link"
-    },
-    children: [
-      {
-        path: "https://juejin.cn/post/7445151895121543209",
-        component: () => {},
-        name: "Link1",
-        meta: {
-          title: "中文文档"
-        }
-      },
-      {
-        path: "https://juejin.cn/column/7207659644487139387",
-        component: () => {},
-        name: "Link2",
-        meta: {
-          title: "新手教程"
-        }
-      }
-    ]
   }
 ]
 
@@ -247,6 +222,14 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         name: "dict",
         meta: {
           title: "字典管理"
+        }
+      },
+      {
+        path: "schedule",
+        component: () => import("@/pages/tool/schedule/index.vue"),
+        name: "schedule",
+        meta: {
+          title: "定时任务"
         }
       }
     ]

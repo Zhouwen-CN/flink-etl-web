@@ -4,10 +4,8 @@ import type { CreateOrUpdateTableRequestData, TableData } from "./apis/type"
 import { usePagination } from "@@/composables/usePagination"
 import { CirclePlus, Delete, Download, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
-import { getDictionaryDataApi } from "@/common/apis/dict"
 import useDictionary from "@/common/composables/useDictionary"
-import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getClusterSelectorDataApi, getJarSelectorDataApi, getTableDataApi, updateTableDataApi } from "./apis/index"
-import RunJobDialog from "./components/RunJobDialog/index.vue"
+import { changeStatusTableDataApi, createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getEtlJobSelectorDataApi, getTableDataApi, updateTableDataApi } from "./apis/index"
 
 const loading = ref<boolean>(false)
 
@@ -17,10 +15,8 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 const DEFAULT_FORM_DATA: CreateOrUpdateTableRequestData = {
   id: undefined,
   name: undefined,
-  clusterId: undefined,
-  jarId: undefined,
-  config: undefined,
-  type: undefined
+  cronExpression: undefined,
+  etlJobId: undefined
 }
 
 const dialogVisible = ref<boolean>(false)
@@ -30,11 +26,9 @@ const formRef = useTemplateRef("formRef")
 const formData = ref<CreateOrUpdateTableRequestData>(cloneDeep(DEFAULT_FORM_DATA))
 
 const formRules: FormRules<CreateOrUpdateTableRequestData> = {
-  name: [{ required: true, trigger: "blur", message: "请输入昵称" }],
-  clusterId: [{ required: true, trigger: "blur", message: "请选择集群ID" }],
-  jarId: [{ required: true, trigger: "blur", message: "请选择JarID" }],
-  config: [{ required: true, trigger: "blur", message: "请输入配置" }],
-  type: [{ required: true, trigger: "blur", message: "请选择任务类型" }]
+  name: [{ required: true, trigger: "blur", message: "请输入任务名称" }],
+  cronExpression: [{ required: true, trigger: "blur", message: "请输入cron表达式" }],
+  etlJobId: [{ required: true, trigger: "blur", message: "请输入ETLJobID" }]
 }
 
 function handleCreateOrUpdate() {
@@ -110,7 +104,7 @@ const tableData = ref<TableData[]>([])
 const searchFormRef = useTemplateRef("searchFormRef")
 
 const searchData = reactive({
-  name: ""
+  searchName: ""
 })
 
 function getTableData() {
@@ -118,7 +112,7 @@ function getTableData() {
   getTableDataApi({
     currentPage: paginationData.currentPage,
     pageSize: paginationData.pageSize,
-    name: searchData.name
+    searchName: searchData.searchName
   }).then(({ data }) => {
     paginationData.total = data.total
     tableData.value = data.list
@@ -139,23 +133,32 @@ function resetSearch() {
 }
 // #endregion
 
-// #region 运行任务
-const runJobDialogRef = ref<InstanceType<typeof RunJobDialog>>()
-function handleRun(row: TableData) {
-  runJobDialogRef.value?.showDialog(row.id, row.type)
+// #region 启动/停止
+function handleChange(row: TableData) {
+  const id = row.id
+  const jobEnable = !row.jobEnable
+  ElMessageBox.confirm(`正在${jobEnable ? "启动" : "停止"}任务：${row.name}，确认操作？`, "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning"
+  }).then(() => {
+    changeStatusTableDataApi({
+      id,
+      jobEnable
+    }).then(() => {
+      ElMessage.success("操作成功")
+      getTableData()
+    })
+  })
 }
 // #endregion
 
 // 监听分页参数的变化
 watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
 
-const { dictData: clusterSelectorData, dictMap: clusterSelectorMap, run: getClusterSelectorData } = useDictionary(getClusterSelectorDataApi)
-const { dictData: jarSelectorData, dictMap: jarSelectorMap, run: getJarSelectorData } = useDictionary(getJarSelectorDataApi)
-const { dictData: jobTypeSelectorData, dictMap: jobTypeSelectorMap, run: getJobTypeSelectorData } = useDictionary(getDictionaryDataApi)
+const { dictData: etlJobSelectorData, dictMap: etlJobSelectorMap, run: runEtlJobSelectorData } = useDictionary(getEtlJobSelectorDataApi)
 onMounted(() => {
-  getClusterSelectorData()
-  getJarSelectorData()
-  getJobTypeSelectorData("job_type")
+  runEtlJobSelectorData()
 })
 </script>
 
@@ -163,8 +166,8 @@ onMounted(() => {
   <div class="app-container">
     <el-card v-loading="loading" shadow="never" class="search-wrapper">
       <el-form ref="searchFormRef" :inline="true" :model="searchData">
-        <el-form-item prop="name" label="任务名称">
-          <el-input v-model="searchData.name" placeholder="请输入" />
+        <el-form-item prop="searchName" label="任务名称">
+          <el-input v-model="searchData.searchName" placeholder="请输入" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" @click="handleSearch">
@@ -199,26 +202,27 @@ onMounted(() => {
         <el-table :data="tableData" @selection-change="handleSelectionChange">
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column prop="name" label="任务名称" align="center" />
-          <el-table-column prop="type" label="任务类型" align="center">
+          <el-table-column prop="etlJobId" label="ETL任务" align="center">
             <template #default="scope">
-              {{ jobTypeSelectorMap.get(scope.row.type) }}
+              {{ etlJobSelectorMap.get(scope.row.etlJobId) }}
             </template>
           </el-table-column>
-          <el-table-column prop="clusterId" label="flink集群" align="center">
+          <el-table-column prop="jobEnable" label="调度状态" align="center">
             <template #default="scope">
-              {{ clusterSelectorMap.get(scope.row.clusterId) }}
+              <el-tag v-if="scope.row.jobEnable" type="success" effect="plain" disable-transitions>
+                运行中
+              </el-tag>
+              <el-tag v-else type="danger" effect="plain" disable-transitions>
+                已停止
+              </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="jarId" label="jar包" align="center">
-            <template #default="scope">
-              {{ jarSelectorMap.get(scope.row.jarId) }}
-            </template>
-          </el-table-column>
+          <el-table-column prop="cronExpression" label="cron表达式" align="center" />
           <el-table-column prop="updateTime" label="更新时间" align="center" />
           <el-table-column fixed="right" label="操作" width="250" align="center">
             <template #default="scope">
-              <el-button type="success" text bg size="small" @click="handleRun(scope.row)">
-                运行
+              <el-button :type="scope.row.jobEnable ? 'warning' : 'success'" text bg size="small" @click="handleChange(scope.row)">
+                {{ scope.row.jobEnable ? '停止' : '启动' }}
               </el-button>
               <el-button type="primary" text bg size="small" @click="handleUpdate(scope.row)">
                 修改
@@ -254,27 +258,13 @@ onMounted(() => {
         <el-form-item prop="name" label="任务名称">
           <el-input v-model="formData.name" placeholder="请输入" />
         </el-form-item>
-        <el-form-item prop="type" label="任务类型">
-          <el-select v-model="formData.type" placeholder="请选择">
-            <el-option v-for="item in jobTypeSelectorData" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
+        <el-form-item prop="cronExpression" label="cron表达式">
+          <el-input v-model="formData.cronExpression" placeholder="请输入" />
         </el-form-item>
-        <el-form-item prop="clusterId" label="flink集群">
-          <el-select v-model="formData.clusterId" placeholder="请选择">
-            <el-option v-for="item in clusterSelectorData" :key="item.value" :label="item.label" :value="item.value" />
+        <el-form-item prop="etlJobId" label="ETL任务ID">
+          <el-select v-model="formData.etlJobId" placeholder="请选择" filterable>
+            <el-option v-for="item in etlJobSelectorData" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
-        </el-form-item>
-        <el-form-item prop="jarId" label="jar包">
-          <el-select v-model="formData.jarId" placeholder="请选择">
-            <el-option v-for="item in jarSelectorData" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item prop="config" label="任务配置">
-          <el-input
-            v-model="formData.config"
-            :autosize="{ minRows: 5, maxRows: 10 }"
-            type="textarea" placeholder="请输入"
-          />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -286,10 +276,6 @@ onMounted(() => {
         </el-button>
       </template>
     </el-dialog>
-
-    <RunJobDialog
-      ref="runJobDialogRef"
-    />
   </div>
 </template>
 

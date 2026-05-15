@@ -1,12 +1,13 @@
-import type { DictionaryData } from "@/common/apis/dict/type"
-
 export interface CreateOrUpdateTableRequestData {
   id?: number
   name?: string
-  clusterId?: number
-  jarId?: number
-  config?: string
-  type?: number
+  cronExpression?: string
+  etlJobId?: number
+}
+
+export interface ChangeStatusRequestData {
+  id: number
+  jobEnable: boolean
 }
 
 export interface DeleteBatchTableRequestData {
@@ -19,16 +20,15 @@ export interface TableRequestData {
   /** 查询条数 */
   pageSize: number
   /** 查询参数：任务名称 */
-  name?: string
+  searchName?: string
 }
 
 export interface TableData {
   id: number
   name: string
-  clusterId: number
-  jarId: number
-  config: string
-  type: number
+  cronExpression: string
+  etlJobId: number
+  jobEnable: boolean
   updateTime: string
 }
 
@@ -36,11 +36,3 @@ export type TableResponseData = ApiResponseData<{
   list: TableData[]
   total: number
 }>
-
-export interface RunJobRequestData {
-  id?: number
-  savepointPath?: string
-}
-
-export type ClusterSelectorDataResponseData = ApiResponseData<DictionaryData[]>
-export type JarSelectorDataResponseData = ApiResponseData<DictionaryData[]>

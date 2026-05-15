@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { FormRules } from "element-plus"
 import type { RunJobFormData } from "./apis/type"
 import { cloneDeep } from "lodash-es"
 
@@ -16,21 +17,33 @@ const DEFAULT_FORM_DATA: RunJobFormData = {
   jobInstanceId: undefined
 }
 
+const formRef = useTemplateRef("formRef")
+const formRules: FormRules<RunJobFormData> = {
+  jobInstanceId: [{ required: true, trigger: "blur", message: "请选择任务实例ID" }],
+  savepointPath: [{ required: true, trigger: "blur", message: "请选择检查点路径" }]
+}
+
 const dialogVisible = ref<boolean>(false)
 
 const formData = ref<RunJobFormData>(cloneDeep(DEFAULT_FORM_DATA))
 
 function handleRunJob() {
-  loading.value = true
-  getRunJobDataApi({
-    id: formData.value.id,
-    savepointPath: formData.value.savepointPath
-  }).then(() => {
-    loading.value = false
-    dialogVisible.value = false
-    ElMessage.success("操作成功")
-  }).finally(() => {
-    loading.value = false
+  formRef.value?.validate((valid) => {
+    if (!valid) {
+      ElMessage.error("表单校验不通过")
+      return
+    }
+    loading.value = true
+    getRunJobDataApi({
+      id: formData.value.id,
+      savepointPath: formData.value.savepointPath
+    }).then(() => {
+      loading.value = false
+      dialogVisible.value = false
+      ElMessage.success("操作成功")
+    }).finally(() => {
+      loading.value = false
+    })
   })
 }
 
@@ -71,7 +84,7 @@ defineExpose({
       width="30%"
       @closed="resetForm"
     >
-      <el-form :model="formData" label-width="100px" label-position="right">
+      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" label-position="right">
         <el-form-item prop="status" label="开启检查点">
           <el-switch
             v-model="formData.status"

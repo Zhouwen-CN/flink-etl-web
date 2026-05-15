@@ -1,233 +1,75 @@
 <div align="center">
   <img alt="logo" width="120" height="120" src="./src/common/assets/images/layouts/logo.png">
-  <h1>V3 Admin Vite</h1>
+  <h1>Flink ETL Web</h1>
 </div>
 
-[![github release](https://img.shields.io/github/v/release/un-pany/v3-admin-vite?style=flat)](https://github.com/un-pany/v3-admin-vite/releases)
-[![github stars](https://img.shields.io/github/stars/un-pany/v3-admin-vite?style=flat)](https://github.com/un-pany/v3-admin-vite/stargazers)
-[![gitee stars](https://gitee.com/un-pany/v3-admin-vite/badge/star.svg)](https://gitee.com/un-pany/v3-admin-vite/stargazers)
-[![atomgit stars](https://atomgit.com/un-pany/v3-admin-vite/star/badge.svg)](https://atomgit.com/un-pany/v3-admin-vite/stargazers)
+## 简介
 
-<b>English | <a href="./README.zh-CN.md">中文</a></b>
+Flink ETL Web 是 [Flink ETL API](https://gitee.com/Zhouwen-CN/flink-etl-api) 的前端项目
 
-## Introduction <a href="https://mp.weixin.qq.com/s/ccuzm4ZlHvN-1XBBN2lduQ"><img src="https://img.shields.io/badge/AI-VibeCoding-black"></a>
+基于 [V3 Admin Vite](https://github.com/un-pany/v3-admin-vite) 模板开发，主要用于 ETL 任务的管理与调度。
 
-V3 Admin Vite is a well-crafted backend management system template, built with popular technologies such as Vue3, Vite, TypeScript, and Element Plus, and offers a great AI Vibe Coding experience!
+## 技术栈
 
-## Notifications
+| 类别         | 技术                                          |
+| ------------ | --------------------------------------------- |
+| 框架         | Vue 3.5+ (Composition API + `<script setup>`) |
+| 构建工具     | Vite 7                                        |
+| 开发语言     | TypeScript                                    |
+| UI 组件库    | Element Plus                                  |
+| 状态管理     | Pinia                                         |
+| 路由管理     | Vue Router                                    |
+| CSS 预处理器 | Scss                                          |
+| 网络请求     | Axios                                         |
+| 代码规范     | ESLint                                        |
+| 包管理器     | pnpm                                          |
 
-> [!IMPORTANT]
-> Welcome to experience the brand-new version 5.0, a masterpiece crafted with great care! If it helps you, feel free to give a Star to show your support.
+## 功能模块
 
-> [!WARNING]
-> Version 4.x will no longer be maintained unless there are critical bugs! [Click to switch to the 4.x branch](https://github.com/un-pany/v3-admin-vite/tree/4.x)
+- **权限管理**：用户管理、角色管理、权限管理（页面级动态路由 + 按钮级权限控制）
+- **ETL 管理**：Flink 集群管理、Jar 包管理、ETL 任务管理、任务实例管理（运行、停止、检查点恢复等）
+- **日志管理**：登录日志、异常日志
+- **系统工具**：字典管理、定时任务
+- **基础功能**：登录验证码、多主题（普通/黑暗/深蓝）、多布局（左侧/顶部/混合）、标签页导航、全屏、动态侧边栏、动态面包屑
 
-> [!TIP]
-> Paid services are officially launched! If you don’t want to do it yourself but want to remove TS or other modules, try the lazy package! [Click to check it out](https://github.com/un-pany/v3-admin-vite/issues/225)
+## 使用
 
-> [!NOTE]
-> If you have mobile web app requirements, give the new open-source template [MobVue](https://github.com/un-pany/mobvue) a try.
+### 环境要求
 
-## Usage
+- Node.js 20.19+ 或 22.12+
+- pnpm 10+
 
-<details>
-<summary>Recommended Environment</summary>
-
-<br>
-
-- Latest version of `Visual Studio Code` or AI IDE `Cursor` and `Trae`
-- Install the recommended plugins in the `.vscode/extensions.json` file
-- `node` 20.19+ or 22.12+
-- `pnpm` 10+
-
-</details>
-
-<details>
-<summary>Local Development</summary>
-
-<br>
+### 本地开发
 
 ```bash
-# Clone the project
-git clone https://github.com/un-pany/v3-admin-vite.git
-
-# Enter the project directory
-cd v3-admin-vite
-
-# Install dependencies
+# 安装依赖
 pnpm i
 
-# Start the development server
+# 启动开发服务
 pnpm dev
 ```
 
-</details>
-
-<details>
-<summary>Build</summary>
-
-<br>
+### 打包构建
 
 ```bash
-# Build for the staging environment
-pnpm build:staging
-
-# Build for the production environment
+# 生产环境
 pnpm build
+
+# 预发布环境
+pnpm build:staging
 ```
 
-</details>
-
-<details>
-<summary>Local Preview</summary>
-
-<br>
+### 代码检查
 
 ```bash
-# Execute the build command first to generate the dist directory, then run the preview command
-pnpm preview
-```
-
-</details>
-
-<details>
-<summary>Code Check</summary>
-
-<br>
-
-```bash
-# Code linting and formatting
+# 代码校验与格式化
 pnpm lint
-
-# Unit tests
-pnpm test
 ```
 
-</details>
+## 致谢
 
-<details>
-<summary>Commit Guidelines</summary>
-
-<br>
-
-`feat` New feature
-
-`fix` Bug fix
-
-`perf` Performance improvement
-
-`refactor` Code refactoring
-
-`docs` Documentation and comments
-
-`types` Type-related changes
-
-`test` Unit tests related
-
-`ci` Continuous integration, workflows
-
-`revert` Revert changes
-
-`chore` Chores (update dependencies, modify configurations, etc)
-
-</details>
-
-## Links
-
-**Online Preview**: [github-pages](https://un-pany.github.io/v3-admin-vite)
-
-**Chinese Documentation**: [link](https://juejin.cn/post/7445151895121543209)
-
-**Zero to Hero Tutorial**: [link](https://juejin.cn/column/7207659644487139387)
-
-**Mobile Web App**: [mobvue](https://github.com/un-pany/mobvue)
-
-**Electron Desktop Version**: [v3-electron-vite](https://github.com/un-pany/v3-electron-vite)
-
-**Chinese Repository**: [gitee](https://gitee.com/un-pany/v3-admin-vite), [atomgit](https://atomgit.com/un-pany/v3-admin-vite)
-
-**Optional Group**: [check how to join](https://github.com/un-pany/v3-admin-vite/issues/191)
-
-**Donations**: [buy a coffee for the author](https://github.com/un-pany/v3-admin-vite/issues/69)
-
-**Releases & Changelog**: [releases](https://github.com/un-pany/v3-admin-vite/releases)
-
-## Features
-
-**Simplified structure**: No complex encapsulation, no complicated type gymnastics, just enough to meet the needs
-
-**Detailed comments**: Every configuration item comes with as detailed comments as possible
-
-**Latest dependencies**: Keeps all third-party dependencies up to date
-
-**Consistency**: Unified code style, naming conventions, and comment style
-
-## Built-in Features
-
-**User Management**: Login, logout demonstration
-
-**Permission Management**: Page-level permissions (dynamic routing), button-level permissions (permission directives, permission functions), route guards
-
-**Multiple Environments**: Development, staging, and production environments
-
-**Multiple Themes**: Normal, dark, and deep blue themes
-
-**Multiple Layouts**: Left-side, top, and hybrid layouts
-
-**Homepage**: Different dashboard pages for different users
-
-**Error Pages**: 403, 404
-
-**Mobile Compatibility**: Layouts compatible with mobile screen resolutions
-
-**Others**: SVG sprite sheet, dynamic sidebar, dynamic breadcrumbs, tab navigation, content zoom and fullscreen, composable functions
-
-## Tech Stack
-
-**Vue3**: Vue3 + script setup with the latest Vue3 Composition API
-
-**Element Plus**: The Vue3 version of Element UI
-
-**Pinia**: The legendary Vuex5
-
-**Vite**: Really fast
-
-**Vue Router**: The routing system
-
-**TypeScript**: A superset of JavaScript
-
-**pnpm**: A faster, disk-space-saving package manager
-
-**Scss**: Consistent with Element Plus
-
-**CSS Variables**: Primarily controls layout and color in the project
-
-**ESLint**: Code linting and formatting
-
-**Axios**: Sends network requests
-
-**UnoCSS**: A high-performance, flexible atomic CSS engine
-
-## Project Preview Image
-
-![preview](./src/common/assets/images/docs/preview.png)
-
-## Contributors
-
-A big thank you to all the contributors!
-
-<a href="https://github.com/un-pany/v3-admin-vite/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=un-pany/v3-admin-vite">
-</a>
-
-## ‌WeChat Official Account‌
-
-New attempts, welcome to follow
-
-<a href="https://mp.weixin.qq.com/s/artNHKubYNRBlsrxD7eXXA">
-  <img src="https://github.com/user-attachments/assets/529bac73-f9e3-4311-94d0-3db57216b771">
-</a>
+本项目基于 [V3 Admin Vite](https://github.com/un-pany/v3-admin-vite) 开发，感谢原作者 [pany](https://github.com/pany-ang) 提供的优秀模板。
 
 ## License
 
-[MIT](./LICENSE) License © 2022-PRESENT [pany](https://github.com/pany-ang)
+[MIT](./LICENSE)

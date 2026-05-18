@@ -104,7 +104,7 @@ onMounted(() => {
 <template>
   <div class="app-container">
     <el-card v-loading="loading" shadow="never" class="search-wrapper">
-      <el-form ref="searchFormRef" :model="searchData">
+      <el-form ref="searchFormRef" :model="searchData" @submit.prevent="handleSearch">
         <el-row>
           <el-col :span="6">
             <el-form-item prop="instanceId" label="实例ID">
@@ -142,9 +142,8 @@ onMounted(() => {
             </el-form-item>
           </el-col>
         </el-row>
-
         <el-form-item>
-          <el-button type="primary" :icon="Search" @click="handleSearch">
+          <el-button type="primary" :icon="Search" native-type="submit">
             查询
           </el-button>
           <el-button :icon="Refresh" @click="resetSearch">

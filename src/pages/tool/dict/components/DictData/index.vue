@@ -158,12 +158,12 @@ defineExpose({
 <template>
   <el-drawer v-model="drawer" title="字典数据" size="50%">
     <el-card v-loading="loading" shadow="never" class="search-wrapper">
-      <el-form ref="searchFormRef" :inline="true" :model="searchData">
+      <el-form ref="searchFormRef" :inline="true" :model="searchData" @submit.prevent="handleSearch">
         <el-form-item prop="name" label="字典标签">
           <el-input v-model="searchData.name" placeholder="请输入" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :icon="Search" @click="handleSearch">
+          <el-button type="primary" :icon="Search" native-type="submit">
             查询
           </el-button>
           <el-button :icon="Refresh" @click="resetSearch">

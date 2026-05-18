@@ -96,7 +96,7 @@ createCode()
         <img src="@@/assets/images/layouts/logo-text-2.png">
       </div>
       <div class="content">
-        <el-form ref="loginFormRef" :model="loginFormData" :rules="loginFormRules" @keyup.enter="handleLogin">
+        <el-form ref="loginFormRef" :model="loginFormData" :rules="loginFormRules" @submit.prevent="handleLogin">
           <el-form-item prop="username">
             <el-input
               v-model.trim="loginFormData.username"
@@ -148,7 +148,7 @@ createCode()
               </template>
             </el-input>
           </el-form-item>
-          <el-button :loading="loading" type="primary" size="large" @click.prevent="handleLogin">
+          <el-button :loading="loading" type="primary" size="large" native-type="submit">
             登 录
           </el-button>
         </el-form>

@@ -47,7 +47,7 @@ export function getJarSelectorDataApi() {
 export function getStopjobDataApi(instanceId: string) {
   return request({
     url: `instance/job/cancel/${instanceId}`,
-    method: "post"
+    method: "put"
   })
 }
 

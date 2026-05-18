@@ -2,9 +2,11 @@
 import type { FormRules } from "element-plus"
 import type { CreateOrUpdateTableRequestData, TableData } from "./apis/type"
 import { usePagination } from "@@/composables/usePagination"
-import { CirclePlus, Delete, Download, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
+import { CirclePlus, Delete, Download, Refresh, RefreshRight, Search, Setting } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
+import NoVue3Cron from "@/common/components/CronTab/index.vue"
 import useDictionary from "@/common/composables/useDictionary"
+
 import { changeStatusTableDataApi, createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getEtlJobSelectorDataApi, getTableDataApi, updateTableDataApi } from "./apis/index"
 
 const loading = ref<boolean>(false)
@@ -153,6 +155,11 @@ function handleChange(row: TableData) {
 }
 // #endregion
 
+// cron表达式
+const cronPopoverVisible = ref<boolean>(false)
+function changeCron(cron: string) {
+  formData.value.cronExpression = cron
+}
 // 监听分页参数的变化
 watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
 
@@ -252,16 +259,35 @@ onMounted(() => {
       v-model="dialogVisible"
       :title="formData.id === undefined ? '新增' : '修改'"
       width="30%"
+      @close="cronPopoverVisible = false"
       @closed="resetForm"
     >
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" label-position="right">
         <el-form-item prop="name" label="任务名称">
           <el-input v-model="formData.name" placeholder="请输入" />
         </el-form-item>
-        <el-form-item prop="cronExpression" label="cron表达式">
-          <el-input v-model="formData.cronExpression" placeholder="请输入" />
+        <el-form-item class="cron-popover" prop="cronExpression" label="cron表达式">
+          <el-popover
+            placement="bottom-start"
+            :visible="cronPopoverVisible"
+            width="480px"
+          >
+            <template #reference>
+              <el-input v-model="formData.cronExpression" placeholder="cron 表达式">
+                <template #append>
+                  <el-button :icon="Setting" @click="cronPopoverVisible = true" />
+                </template>
+              </el-input>
+            </template>
+            <NoVue3Cron
+              max-height="250px"
+              :cron-value="formData.cronExpression"
+              @change="changeCron"
+              @close="cronPopoverVisible = false"
+            />
+          </el-popover>
         </el-form-item>
-        <el-form-item prop="etlJobId" label="ETL任务ID">
+        <el-form-item prop="etlJobId" label="ETL任务">
           <el-select v-model="formData.etlJobId" placeholder="请选择" filterable>
             <el-option v-for="item in etlJobSelectorData" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>

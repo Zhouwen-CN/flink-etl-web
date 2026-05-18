@@ -295,7 +295,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
       {
         path: "login",
         component: () => import("@/pages/log/login/index.vue"),
-        name: "login",
+        name: "login-log",
         meta: {
           title: "登录日志"
         }
@@ -303,7 +303,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
       {
         path: "error",
         component: () => import("@/pages/log/error/index.vue"),
-        name: "error",
+        name: "error-log",
         meta: {
           title: "异常日志"
         }

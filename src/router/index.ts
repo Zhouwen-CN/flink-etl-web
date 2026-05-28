@@ -225,11 +225,11 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         }
       },
       {
-        path: "schedule",
-        component: () => import("@/pages/tool/schedule/index.vue"),
-        name: "schedule",
+        path: "variable",
+        component: () => import("@/pages/tool/variable/index.vue"),
+        name: "variable",
         meta: {
-          title: "定时任务"
+          title: "变量管理"
         }
       }
     ]
@@ -245,21 +245,11 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     },
     children: [
       {
-        path: "cluster",
-        component: () => import("@/pages/etl/cluster/index.vue"),
-        name: "cluster",
+        path: "schedule",
+        component: () => import("@/pages/etl/schedule/index.vue"),
+        name: "schedule",
         meta: {
-          title: "Flink 集群",
-          roles: ["admin"]
-        }
-      },
-      {
-        path: "jar",
-        component: () => import("@/pages/etl/jar/index.vue"),
-        name: "jar",
-        meta: {
-          title: "Jar 包管理",
-          roles: ["admin"]
+          title: "定时任务"
         }
       },
       {
@@ -278,6 +268,24 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: {
           title: "任务实例",
           roles: ["admin", "dev"]
+        }
+      },
+      {
+        path: "cluster",
+        component: () => import("@/pages/etl/cluster/index.vue"),
+        name: "cluster",
+        meta: {
+          title: "Flink 集群",
+          roles: ["admin"]
+        }
+      },
+      {
+        path: "jar",
+        component: () => import("@/pages/etl/jar/index.vue"),
+        name: "jar",
+        meta: {
+          title: "Jar 包管理",
+          roles: ["admin"]
         }
       }
     ]

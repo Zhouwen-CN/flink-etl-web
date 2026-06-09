@@ -3,10 +3,12 @@ import type { DictionaryData } from "@/common/apis/dict/type"
 export interface CreateOrUpdateTableRequestData {
   id?: number
   name?: string
+  type: number
   clusterId?: number
   jarId?: number
+  parallelism: number
+  checkpointInterval?: number
   config?: string
-  type?: number
 }
 
 export interface DeleteBatchTableRequestData {
@@ -25,10 +27,12 @@ export interface TableRequestData {
 export interface TableData {
   id: number
   name: string
+  type: number
   clusterId: number
   jarId: number
+  parallelism: number
+  checkpointInterval: number
   config: string
-  type: number
   updateTime: string
 }
 

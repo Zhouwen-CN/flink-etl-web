@@ -17,10 +17,12 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 const DEFAULT_FORM_DATA: CreateOrUpdateTableRequestData = {
   id: undefined,
   name: undefined,
+  type: 1,
   clusterId: undefined,
   jarId: undefined,
-  config: undefined,
-  type: undefined
+  parallelism: 1,
+  checkpointInterval: 30000,
+  config: undefined
 }
 
 const dialogVisible = ref<boolean>(false)
@@ -45,6 +47,10 @@ function handleCreateOrUpdate() {
     }
     loading.value = true
     const api = formData.value.id === undefined ? createTableDataApi : updateTableDataApi
+    // 非流式任务，检查点间隔为空
+    if (formData.value.type !== 2) {
+      formData.value.checkpointInterval = undefined
+    }
     api(formData.value).then(() => {
       ElMessage.success("操作成功")
       dialogVisible.value = false
@@ -101,6 +107,7 @@ function handleBathDelete() {
 function handleUpdate(row: TableData) {
   dialogVisible.value = true
   formData.value = cloneDeep(row)
+  formData.value.checkpointInterval ??= DEFAULT_FORM_DATA.checkpointInterval
 }
 // #endregion
 
@@ -196,7 +203,7 @@ onMounted(() => {
         </div>
       </div>
       <div class="table-wrapper">
-        <el-table :data="tableData" @selection-change="handleSelectionChange">
+        <el-table :data="tableData" @selection-change="handleSelectionChange" show-overflow-tooltip>
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column prop="name" label="任务名称" align="center" />
           <el-table-column prop="type" label="任务类型" align="center">
@@ -212,6 +219,12 @@ onMounted(() => {
           <el-table-column prop="jarId" label="jar包" align="center">
             <template #default="scope">
               {{ jarSelectorMap.get(scope.row.jarId) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="parallelism" label="并行度" align="center" />
+          <el-table-column prop="checkpointInterval" label="检查点间隔" align="center">
+            <template #default="scope">
+              {{ scope.row.checkpointInterval ? `${scope.row.checkpointInterval}ms` : "-" }}
             </template>
           </el-table-column>
           <el-table-column prop="updateTime" label="更新时间" align="center" />
@@ -250,7 +263,7 @@ onMounted(() => {
       width="30%"
       @closed="resetForm"
     >
-      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" label-position="right">
+      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="120px" label-position="right">
         <el-form-item prop="name" label="任务名称">
           <el-input v-model="formData.name" placeholder="请输入" />
         </el-form-item>
@@ -269,10 +282,16 @@ onMounted(() => {
             <el-option v-for="item in jarSelectorData" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
+        <el-form-item prop="parallelism" label="并行度">
+          <el-input-number v-model="formData.parallelism" placeholder="请输入" />
+        </el-form-item>
+        <el-form-item v-if="formData.type === 2" prop="checkpointInterval" label="检查点间隔(ms)">
+          <el-input-number v-model="formData.checkpointInterval" placeholder="请输入" />
+        </el-form-item>
         <el-form-item prop="config" label="任务配置">
           <el-input
             v-model="formData.config"
-            :autosize="{ minRows: 5, maxRows: 10 }"
+            :autosize="{ minRows: 4, maxRows: 6 }"
             type="textarea" placeholder="请输入"
           />
         </el-form-item>

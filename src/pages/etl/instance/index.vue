@@ -186,7 +186,7 @@ onMounted(() => {
               <el-button type="warning" text bg size="small" @click="handleStop(scope.row)" :disabled="scope.row.status !== 'Running'">
                 停止
               </el-button>
-              <el-button type="danger" text bg size="small" @click="handleDelete(scope.row)" :disabled="scope.row.status !== 'Failed' && scope.row.status !== 'Canceled' && scope.row.status !== 'Finished'">
+              <el-button type="danger" text bg size="small" @click="handleDelete(scope.row)" :disabled="!['Unknown', 'Failed', 'Canceled', 'Finished'].includes(scope.row.status)">
                 删除
               </el-button>
             </template>

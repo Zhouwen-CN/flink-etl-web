@@ -172,10 +172,16 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
         </div>
       </div>
       <div class="table-wrapper">
-        <el-table :data="tableData" @selection-change="handleSelectionChange">
+        <el-table :data="tableData" @selection-change="handleSelectionChange" show-overflow-tooltip>
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column prop="name" label="集群名称" align="center" />
-          <el-table-column prop="jobManagerUrl" label="集群地址" align="center" />
+          <el-table-column prop="jobManagerUrl" label="集群地址" align="center">
+            <template #default="scope">
+              <el-link :href="scope.row.jobManagerUrl" :underline="false" type="primary" target="_blank">
+                {{ scope.row.jobManagerUrl }}
+              </el-link>
+            </template>
+          </el-table-column>
           <el-table-column prop="version" label="版本" align="center" />
           <el-table-column prop="status" label="状态" align="center">
             <template #default="scope">

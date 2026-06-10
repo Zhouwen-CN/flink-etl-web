@@ -61,7 +61,6 @@ function showDialog(id: number, type: number) {
 
 function handlerSelectorChange(value: any) {
   getCheckpointSelectorData({
-    jobId: formData.value.id,
     instanceId: value
   })
 }

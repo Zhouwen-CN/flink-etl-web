@@ -12,6 +12,5 @@ export interface RunJobResponseData {
 }
 
 export interface CheckpointSelectorRequestData {
-  jobId: number
   instanceId: string
 }

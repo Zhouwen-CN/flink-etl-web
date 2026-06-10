@@ -220,7 +220,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
       width="30%"
       @closed="resetForm"
     >
-      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" label-position="right">
+      <el-form @submit.prevent="undefined" ref="formRef" :model="formData" :rules="formRules" label-width="100px" label-position="right">
         <el-form-item prop="name" label="Jar包名称">
           <el-input v-model="formData.name" placeholder="请输入" />
         </el-form-item>

@@ -22,6 +22,8 @@ export interface TableRequestData {
   pageSize: number
   /** 查询参数：任务名称 */
   name?: string
+  /** 查询参数：任务类型 */
+  type?: number
 }
 
 export interface TableData {

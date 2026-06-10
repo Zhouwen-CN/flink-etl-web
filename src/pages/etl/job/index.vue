@@ -117,7 +117,8 @@ const tableData = ref<TableData[]>([])
 const searchFormRef = useTemplateRef("searchFormRef")
 
 const searchData = reactive({
-  name: ""
+  name: "",
+  type: undefined
 })
 
 function getTableData() {
@@ -125,7 +126,8 @@ function getTableData() {
   getTableDataApi({
     currentPage: paginationData.currentPage,
     pageSize: paginationData.pageSize,
-    name: searchData.name
+    name: searchData.name,
+    type: searchData.type
   }).then(({ data }) => {
     paginationData.total = data.total
     tableData.value = data.list
@@ -172,6 +174,11 @@ onMounted(() => {
       <el-form ref="searchFormRef" :inline="true" :model="searchData" @submit.prevent="handleSearch">
         <el-form-item prop="name" label="任务名称">
           <el-input v-model="searchData.name" placeholder="请输入" />
+        </el-form-item>
+        <el-form-item prop="type" label="任务类型">
+          <el-select v-model="searchData.type" placeholder="请选择" style="width: 150px" clearable>
+            <el-option v-for="item in jobTypeSelectorData" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" native-type="submit">

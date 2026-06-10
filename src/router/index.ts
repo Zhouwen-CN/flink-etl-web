@@ -154,7 +154,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     name: "system",
     meta: {
       title: "系统管理",
-      elIcon: "Lock",
+      elIcon: "Setting",
       // 可以在根路由中设置角色
       roles: ["admin"],
       alwaysShow: true
@@ -192,7 +192,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     component: Layouts,
     meta: {
       title: "系统工具",
-      elIcon: "Setting",
+      svgIcon: "system-tools",
       roles: ["admin", "dev"],
       alwaysShow: true
     },
@@ -240,7 +240,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     redirect: "/etl/cluster",
     meta: {
       title: "ETL 管理",
-      elIcon: "Document",
+      svgIcon: "job-manager",
       alwaysShow: true
     },
     children: [
@@ -296,7 +296,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     redirect: "/log/login",
     meta: {
       title: "日志管理",
-      elIcon: "Document",
+      svgIcon: "log-manager",
       alwaysShow: true
     },
     children: [

@@ -14,7 +14,8 @@ const tableData = ref<TableData[]>([])
 const searchFormRef = useTemplateRef("searchFormRef")
 
 const searchData = reactive({
-  username: ""
+  username: "",
+  method: ""
 })
 
 function getTableData() {
@@ -22,7 +23,8 @@ function getTableData() {
   getTableDataApi({
     currentPage: paginationData.currentPage,
     pageSize: paginationData.pageSize,
-    username: searchData.username
+    username: searchData.username,
+    method: searchData.method
   }).then(({ data }) => {
     paginationData.total = data.total
     tableData.value = data.list
@@ -53,6 +55,15 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
       <el-form ref="searchFormRef" :inline="true" :model="searchData" @submit.prevent="handleSearch">
         <el-form-item prop="username" label="用户名">
           <el-input v-model="searchData.username" placeholder="请输入" />
+        </el-form-item>
+        <el-form-item prop="method" label="请求方法">
+          <el-select v-model="searchData.method" placeholder="请选择" style="width: 150px;" clearable>
+            <el-option label="POST" value="POST" />
+            <el-option label="PUT" value="PUT" />
+            <el-option label="DELETE" value="DELETE" />
+            <el-option label="PATCH" value="PATCH" />
+            <el-option label="GET" value="GET" />
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" native-type="submit">

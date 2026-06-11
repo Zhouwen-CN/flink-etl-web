@@ -5,6 +5,8 @@ export interface TableRequestData {
   pageSize: number
   /** 查询参数：用户名 */
   username?: string
+  /** 查询参数：请求方法 */
+  method?: string
 }
 
 export interface TableData {

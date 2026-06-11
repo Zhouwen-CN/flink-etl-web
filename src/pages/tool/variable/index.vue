@@ -176,7 +176,11 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column prop="name" label="变量名" align="center" />
           <el-table-column prop="value" label="变量值" align="center" />
-          <el-table-column prop="realValue" label="真实值" align="center" />
+          <el-table-column prop="realValue" label="真实值" align="center">
+            <template #default="scope">
+              {{ scope.row.value.startsWith("#") ? scope.row.realValue : '-' }}
+            </template>
+          </el-table-column>
           <el-table-column prop="status" label="状态" align="center">
             <template #default="scope">
               <el-tag v-if="scope.row.status" type="success" effect="plain" disable-transitions>

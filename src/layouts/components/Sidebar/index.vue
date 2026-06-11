@@ -59,6 +59,7 @@ const tipLineWidth = computed(() => !isTop.value ? "2px" : "0px")
         :active-text-color="activeTextColor"
         :collapse-transition="false"
         :mode="isTop && !isMobile ? 'horizontal' : 'vertical'"
+        unique-opened
       >
         <Item
           v-for="noHiddenRoute in noHiddenRoutes"

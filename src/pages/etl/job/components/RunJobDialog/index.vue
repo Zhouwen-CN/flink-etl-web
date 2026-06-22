@@ -117,10 +117,6 @@ defineExpose({
 </template>
 
 <style lang="scss" scoped>
-.el-alert {
-  margin-bottom: 20px;
-}
-
 .search-wrapper {
   margin-bottom: 20px;
   :deep(.el-card__body) {

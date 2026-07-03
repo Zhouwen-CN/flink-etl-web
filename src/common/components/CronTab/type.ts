@@ -36,7 +36,6 @@ interface CronOutput {
   day: string
   month: string
   Week: string
-  year: string
 }
 
 /** 组件响应式状态 */
@@ -47,55 +46,14 @@ export interface CronTabState {
   day: DayCronField
   week: WeekCronField
   month: BaseCronField
-  year: BaseCronField
   output: CronOutput
-  text: CronLanguage
   secondsText: string
   minutesText: string
   hoursText: string
   daysText: string
   weeksText: string
   monthsText: string
-  yearsText: string
   cron: string
-}
-
-/** 通用时间字段语言配置 */
-interface TimeFieldLanguage {
-  name: string
-  every: string
-  interval: string[]
-  specific: string
-  cycle: string[]
-}
-
-/** 天字段语言配置 */
-interface DayFieldLanguage {
-  name: string
-  every: string
-  intervalWeek: string[]
-  intervalDay: string[]
-  specificWeek: string
-  specificDay: string
-  lastDay: string
-  lastWeekday: string
-  lastWeek: string[]
-  beforeEndMonth: string[]
-  nearestWeekday: string[]
-  someWeekday: string[]
-}
-
-/** 多语言配置 */
-export interface CronLanguage {
-  Seconds: TimeFieldLanguage
-  Minutes: TimeFieldLanguage
-  Hours: TimeFieldLanguage
-  Day: DayFieldLanguage
-  Week: string[]
-  Month: TimeFieldLanguage
-  Year: TimeFieldLanguage
-  Save: string
-  Close: string
 }
 
 /** 组件 Props */

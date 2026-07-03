@@ -19,6 +19,8 @@
     "element-plus": "2.13.1",
     "lodash-es": "4.17.22",
     "mitt": "3.0.1",
+    "monaco-editor": "0.55.1",
+    "monaco-yaml": "5.5.1",
     "normalize.css": "8.0.1",
     "nprogress": "0.2.0",
     "path-browserify": "1.0.1",

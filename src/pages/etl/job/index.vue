@@ -300,7 +300,7 @@ onMounted(() => {
         </el-form-item>
 
         <el-form-item prop="config" label="任务配置">
-          <Editor ref="editorRef" v-model="formData.config" />
+          <Editor ref="editorRef" v-model="formData.config" class="editor" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -340,5 +340,11 @@ onMounted(() => {
 .pager-wrapper {
   display: flex;
   justify-content: flex-end;
+}
+
+//
+.editor {
+  border: 2px solid var(--el-border-color);
+  border-radius: var(--el-border-radius-base);
 }
 </style>

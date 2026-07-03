@@ -67,7 +67,8 @@ export default defineConfig(({ mode }) => {
            */
           manualChunks: {
             vue: ["vue", "vue-router", "pinia"],
-            element: ["element-plus", "@element-plus/icons-vue"]
+            element: ["element-plus", "@element-plus/icons-vue"],
+            monaco: ["monaco-editor", "monaco-yaml"]
           }
         }
       },

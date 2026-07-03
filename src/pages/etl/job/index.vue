@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { FormRules } from "element-plus"
 import type { CreateOrUpdateTableRequestData, TableData } from "./apis/type"
+import Editor from "@@/components/Editor/index.vue"
 import { usePagination } from "@@/composables/usePagination"
 import { CirclePlus, Delete, Download, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
@@ -28,6 +29,7 @@ const DEFAULT_FORM_DATA: CreateOrUpdateTableRequestData = {
 const dialogVisible = ref<boolean>(false)
 
 const formRef = useTemplateRef("formRef")
+const editorRef = useTemplateRef("editorRef")
 
 const formData = ref<CreateOrUpdateTableRequestData>(cloneDeep(DEFAULT_FORM_DATA))
 
@@ -64,6 +66,7 @@ function handleCreateOrUpdate() {
 function resetForm() {
   formRef.value?.clearValidate()
   formData.value = cloneDeep(DEFAULT_FORM_DATA)
+  editorRef.value?.resetFullscreen()
 }
 // #endregion
 
@@ -295,12 +298,9 @@ onMounted(() => {
         <el-form-item v-if="formData.type === 2" prop="checkpointInterval" label="检查点间隔(ms)">
           <el-input-number v-model="formData.checkpointInterval" placeholder="请输入" />
         </el-form-item>
+
         <el-form-item prop="config" label="任务配置">
-          <el-input
-            v-model="formData.config"
-            :autosize="{ minRows: 4, maxRows: 6 }"
-            type="textarea" placeholder="请输入"
-          />
+          <Editor ref="editorRef" v-model="formData.config" />
         </el-form-item>
       </el-form>
       <template #footer>

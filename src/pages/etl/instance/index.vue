@@ -92,6 +92,30 @@ const { dictData: jobIdSelectorData, dictMap: jobIdSelectorMap, run: getJobIdSel
 const { dictData: statusSelectorData, run: getStatusSelectorData } = useDictionary(getStatusSelectorDataApi)
 const { dictMap: jarSelectorMap, run: getJarSelectorData } = useDictionary(getJarSelectorDataApi)
 
+/**
+ * 获取持续时间
+ *  1. 小于1000显示毫秒
+ *  2. 大于等于1000 且小于60000，转换为秒显示
+ *  3. 大于等于60000 且小于360000，转换为分钟显示
+ *  4. 大于等于360000 且小于86400000，转换为小时显示
+ *  5. 大于等于86400000 且小于172800000，转换为天显示
+ *  保留两位小数显示
+ */
+function formatDuration(duration: number) {
+  if (duration < 1000) {
+    return `${duration} 毫秒`
+  }
+  if (duration < 60000) {
+    return `${(duration / 1000).toFixed(2)} 秒`
+  } else if (duration < 3600000) {
+    return `${(duration / 60000).toFixed(2)} 分钟`
+  } else if (duration < 86400000) {
+    return `${(duration / 3600000).toFixed(2)} 小时`
+  } else {
+    return `${(duration / 86400000).toFixed(2)} 天`
+  }
+}
+
 onMounted(() => {
   getJobTypeSelectorData("job_type")
   getClusterSelectorData()
@@ -174,7 +198,11 @@ onMounted(() => {
           <el-table-column prop="status" label="任务状态" align="center" />
           <el-table-column prop="startTime" label="开始时间" align="center" />
           <el-table-column prop="endTime" label="结束时间" align="center" />
-          <el-table-column prop="duration" label="持续时间" align="center" />
+          <el-table-column prop="duration" label="持续时间" align="center">
+            <template #default="scope">
+              {{ formatDuration(scope.row.duration) }}
+            </template>
+          </el-table-column>
           <el-table-column prop="jarId" label="jar包名称" align="center">
             <template #default="scope">
               {{ jarSelectorMap.get(scope.row.jarId) }}

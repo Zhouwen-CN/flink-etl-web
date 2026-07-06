@@ -16,3 +16,4 @@ vite.config.*.timestamp*
 # Use the pnpm
 package-lock.json
 yarn.lock
+.idea

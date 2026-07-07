@@ -155,6 +155,14 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: {
           title: "变量管理"
         }
+      },
+      {
+        path: "alert",
+        component: () => import("@/pages/tool/alert/index.vue"),
+        name: "alert",
+        meta: {
+          title: "告警管理"
+        }
       }
     ]
   },

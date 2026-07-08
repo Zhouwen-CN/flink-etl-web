@@ -3,12 +3,14 @@ import logoText1 from "@@/assets/images/layouts/logo-text-1.png?url"
 import logoText2 from "@@/assets/images/layouts/logo-text-2.png?url"
 import logo from "@@/assets/images/layouts/logo.png?url"
 import { useLayoutMode } from "@@/composables/useLayoutMode"
+import { useTheme } from "@@/composables/useTheme"
+
+const { collapse = true } = defineProps<Props>()
+const { activeThemeName } = useTheme()
 
 interface Props {
   collapse?: boolean
 }
-
-const { collapse = true } = defineProps<Props>()
 
 const { isLeft, isTop } = useLayoutMode()
 </script>
@@ -20,7 +22,7 @@ const { isLeft, isTop } = useLayoutMode()
         <img :src="logo" class="layout-logo">
       </router-link>
       <router-link v-else key="expand" to="/">
-        <img :src="!isLeft ? logoText2 : logoText1" class="layout-logo-text">
+        <img :src="activeThemeName === 'normal' && !isLeft ? logoText2 : logoText1" class="layout-logo-text">
       </router-link>
     </transition>
   </div>

@@ -39,7 +39,9 @@ const { isLeft, isTop } = useLayoutMode()
   }
   .layout-logo-text {
     height: 100%;
+    width: 100%;
     vertical-align: middle;
+    object-fit: cover;
   }
 }
 

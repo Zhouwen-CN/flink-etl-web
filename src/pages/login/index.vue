@@ -185,6 +185,9 @@ createCode()
       height: 150px;
       img {
         height: 100%;
+        width: 100%;
+        object-fit: cover;
+        padding: 30px;
       }
     }
     .content {

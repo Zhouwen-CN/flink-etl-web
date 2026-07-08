@@ -182,7 +182,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
         </div>
       </div>
       <div class="table-wrapper">
-        <el-table :data="tableData" @selection-change="handleSelectionChange">
+        <el-table :data="tableData" @selection-change="handleSelectionChange" show-overflow-tooltip>
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column prop="name" label="Jar名称" align="center" />
           <el-table-column prop="fileName" label="Jar文件名" align="center" />

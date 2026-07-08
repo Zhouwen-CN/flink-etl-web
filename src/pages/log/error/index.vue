@@ -66,7 +66,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
     </el-card>
     <el-card v-loading="loading" shadow="never">
       <div class="table-wrapper">
-        <el-table :data="tableData">
+        <el-table :data="tableData" show-overflow-tooltip>
           <el-table-column prop="createUser" label="用户名" align="center">
             <template #default="scope">
               {{ scope.row.createUser || "-" }}

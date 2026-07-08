@@ -193,11 +193,6 @@ onMounted(() => {
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column prop="name" label="告警名称" align="center" />
           <el-table-column prop="email" label="邮箱" align="center" />
-          <el-table-column prop="sendTime" label="发送时间" align="center">
-            <template #default="scope">
-              {{ scope.row.sendTime ? scope.row.sendTime : "-" }}
-            </template>
-          </el-table-column>
           <el-table-column prop="updateTime" label="更新时间" align="center" />
           <el-table-column fixed="right" label="操作" width="250" align="center">
             <template #default="scope">

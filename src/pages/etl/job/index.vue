@@ -231,7 +231,7 @@ onMounted(() => {
               {{ jarSelectorMap.get(scope.row.jarId) }}
             </template>
           </el-table-column>
-          <el-table-column prop="parallelism" label="并行度" align="center" />
+          <el-table-column prop="parallelism" label="并行度" min-width="45" align="center" />
           <el-table-column prop="checkpointInterval" label="检查点间隔" align="center">
             <template #default="scope">
               {{ scope.row.checkpointInterval ? `${scope.row.checkpointInterval}ms` : "-" }}

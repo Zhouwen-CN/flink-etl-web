@@ -22,8 +22,6 @@ export interface TableData {
   id: number
   name: string
   email: string
-  jobIds: string
-  sendTime: string
   updateTime: string
 }
 

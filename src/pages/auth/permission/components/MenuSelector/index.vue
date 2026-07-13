@@ -11,6 +11,7 @@ const model = defineModel<string>()
     node-key="name"
     style="width: 240px"
     default-expand-all
+    clearable
     :props="{
       label: (item) => item.meta.title,
     }"

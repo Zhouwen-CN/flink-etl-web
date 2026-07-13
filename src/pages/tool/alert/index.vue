@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import type { FormRules } from "element-plus"
+import type { CheckboxValueType, FormRules } from "element-plus"
 import type { CreateOrUpdateTableRequestData, TableData } from "./apis/type"
 import { usePagination } from "@@/composables/usePagination"
 import { CirclePlus, Delete, Download, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
+
 import { cloneDeep } from "lodash-es"
 import useDictionary from "@/common/composables/useDictionary"
 import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getJobIdsDataApi, getJobSelectorDataApi, getTableDataApi, testSendEmailDataApi, updateTableDataApi } from "./apis/index"
@@ -147,6 +148,29 @@ function handleTestSendEmail(row: TableData) {
 // 监听分页参数的变化
 watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
 
+// 监控任务选择器，全选/取消全选
+const checkAll = ref(false)
+const indeterminate = ref(false)
+function handleCheckAll(val: CheckboxValueType) {
+  indeterminate.value = false
+  if (val) {
+    formData.value.jobIds = jobIdSelectorData.value.map(item => item.value as number)
+  } else {
+    formData.value.jobIds = []
+  }
+}
+watch(() => formData.value.jobIds, (val) => {
+  if (val.length === 0) {
+    checkAll.value = false
+    indeterminate.value = false
+  } else if (val.length === jobIdSelectorData.value.length) {
+    checkAll.value = true
+    indeterminate.value = false
+  } else {
+    indeterminate.value = true
+  }
+})
+
 onMounted(() => {
   getJobIdSelectorData()
 })
@@ -157,7 +181,7 @@ onMounted(() => {
     <el-card v-loading="loading" shadow="never" class="search-wrapper">
       <el-form ref="searchFormRef" :inline="true" :model="searchData" @submit.prevent="handleSearch">
         <el-form-item prop="name" label="告警名称">
-          <el-input v-model="searchData.name" placeholder="请输入" />
+          <el-input v-model="searchData.name" placeholder="请输入" clearable style="width: 180px" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" native-type="submit">
@@ -243,7 +267,17 @@ onMounted(() => {
             collapse-tags
             collapse-tags-tooltip
             placeholder="请选择"
+            filterable
           >
+            <template #header>
+              <el-checkbox
+                v-model="checkAll"
+                :indeterminate="indeterminate"
+                @change="handleCheckAll"
+              >
+                全选
+              </el-checkbox>
+            </template>
             <el-option
               v-for="item in jobIdSelectorData"
               :key="item.value"

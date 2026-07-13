@@ -174,7 +174,7 @@ onMounted(() => {
     <el-card v-loading="loading" shadow="never" class="search-wrapper">
       <el-form ref="searchFormRef" :inline="true" :model="searchData" @submit.prevent="handleSearch">
         <el-form-item prop="searchName" label="任务名称">
-          <el-input v-model="searchData.searchName" placeholder="请输入" />
+          <el-input v-model="searchData.searchName" placeholder="请输入" clearable style="width: 180px" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" native-type="submit">

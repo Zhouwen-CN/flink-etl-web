@@ -176,10 +176,10 @@ onMounted(() => {
     <el-card v-loading="loading" shadow="never" class="search-wrapper">
       <el-form ref="searchFormRef" :inline="true" :model="searchData" @submit.prevent="handleSearch">
         <el-form-item prop="name" label="任务名称">
-          <el-input v-model="searchData.name" placeholder="请输入" />
+          <el-input v-model="searchData.name" placeholder="请输入" clearable style="width: 180px" />
         </el-form-item>
         <el-form-item prop="type" label="任务类型">
-          <el-select v-model="searchData.type" placeholder="请选择" style="width: 150px" clearable>
+          <el-select v-model="searchData.type" placeholder="请选择" clearable style="width: 180px">
             <el-option v-for="item in jobTypeSelectorData" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>

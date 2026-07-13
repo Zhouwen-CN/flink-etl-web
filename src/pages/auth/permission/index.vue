@@ -154,10 +154,10 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
     <el-card v-loading="loading" shadow="never" class="search-wrapper">
       <el-form ref="searchFormRef" :inline="true" :model="searchData" @submit.prevent="handleSearch">
         <el-form-item prop="routeName" label="路由名称">
-          <MenuSelector v-model="searchData.routeName" />
+          <MenuSelector v-model="searchData.routeName" style="width: 180px" />
         </el-form-item>
         <el-form-item prop="code" label="权限编码">
-          <el-input v-model="searchData.code" placeholder="请输入" />
+          <el-input v-model="searchData.code" placeholder="请输入" clearable style="width: 180px" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" native-type="submit">

@@ -17,3 +17,4 @@ vite.config.*.timestamp*
 package-lock.json
 yarn.lock
 .idea
+.vite

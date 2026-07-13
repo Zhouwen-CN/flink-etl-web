@@ -131,36 +131,36 @@ onMounted(() => {
       <el-form ref="searchFormRef" :model="searchData" @submit.prevent="handleSearch">
         <el-row>
           <el-col :span="6">
-            <el-form-item prop="instanceId" label="实例ID">
-              <el-input v-model="searchData.instanceId" placeholder="请输入" style="width: 150px" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="6">
-            <el-form-item prop="clusterId" label="集群名称">
-              <el-select v-model="searchData.clusterId" placeholder="请选择" style="width: 150px" clearable>
-                <el-option v-for="item in clusterSelectorData" :key="item.value" :label="item.label" :value="item.value" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="6">
             <el-form-item prop="jobId" label="任务名称">
-              <el-select v-model="searchData.jobId" placeholder="请选择" style="width: 150px" clearable>
+              <el-select v-model="searchData.jobId" placeholder="请选择" style="width: 180px" clearable filterable>
                 <el-option v-for="item in jobIdSelectorData" :key="item.value" :label="item.label" :value="item.value" />
               </el-select>
             </el-form-item>
           </el-col>
-        </el-row>
-        <el-row>
           <el-col :span="6">
             <el-form-item prop="jobType" label="任务类型">
-              <el-select v-model="searchData.jobType" placeholder="请选择" style="width: 150px" clearable>
+              <el-select v-model="searchData.jobType" placeholder="请选择" style="width: 180px" clearable>
                 <el-option v-for="item in jobTypeSelectorData" :key="item.value" :label="item.label" :value="item.value" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="6">
+            <el-form-item prop="instanceId" label="实例ID">
+              <el-input v-model="searchData.instanceId" placeholder="请输入" style="width: 180px" clearable />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="6">
+            <el-form-item prop="clusterId" label="集群名称">
+              <el-select v-model="searchData.clusterId" placeholder="请选择" style="width: 180px" clearable>
+                <el-option v-for="item in clusterSelectorData" :key="item.value" :label="item.label" :value="item.value" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="6">
             <el-form-item prop="status" label="任务状态">
-              <el-select v-model="searchData.status" placeholder="请选择" style="width: 150px" clearable>
+              <el-select v-model="searchData.status" placeholder="请选择" style="width: 180px" clearable>
                 <el-option v-for="item in statusSelectorData" :key="item.value" :label="item.label" :value="item.value" />
               </el-select>
             </el-form-item>

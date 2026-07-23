@@ -102,10 +102,11 @@ const { dictMap: jarSelectorMap, run: getJarSelectorData } = useDictionary(getJa
  *  保留两位小数显示
  */
 function formatDuration(duration: number) {
+  if (!duration) return "-"
+
   if (duration < 1000) {
     return `${duration} 毫秒`
-  }
-  if (duration < 60000) {
+  } else if (duration < 60000) {
     return `${(duration / 1000).toFixed(2)} 秒`
   } else if (duration < 3600000) {
     return `${(duration / 60000).toFixed(2)} 分钟`

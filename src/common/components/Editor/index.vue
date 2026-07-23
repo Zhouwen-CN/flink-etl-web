@@ -29,7 +29,6 @@ const model = defineModel<string>()
 const isFullscreen = ref(false)
 
 const fullscreenIcon = computed(() => (isFullscreen.value ? "fullscreen-exit" : "fullscreen"))
-const fullscreenTips = computed(() => (isFullscreen.value ? "退出全屏" : "全屏"))
 
 // Monaco 挂载点与实例
 const editorEl = ref<HTMLElement>()
@@ -173,9 +172,7 @@ defineExpose({
 
 <template>
   <div class="editor-container" :class="{ 'is-fullscreen': isFullscreen }">
-    <el-tooltip effect="dark" :content="fullscreenTips" placement="bottom">
-      <SvgIcon :name="fullscreenIcon" class="fullscreen-icon" @click="toggleFullscreen" />
-    </el-tooltip>
+    <SvgIcon :name="fullscreenIcon" class="fullscreen-icon" @click="toggleFullscreen" />
     <div ref="editorEl" class="editor-body" :style="editorStyle" />
   </div>
 </template>

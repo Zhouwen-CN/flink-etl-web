@@ -8,6 +8,9 @@ import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
 import JsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker"
 import { configureMonacoYaml } from "monaco-yaml"
 import YamlWorker from "monaco-yaml/yaml.worker?worker"
+import etlConfigSchema from "./schema/etl-config.json"
+
+const SCHEMA_URL = "https://pub-cf5b6601ddf74ca1b2fe3e5a215f6d8f.r2.dev/job-config-schema.json"
 
 /**
  * 配置 Monaco 的 Web Worker
@@ -22,13 +25,33 @@ globalThis.MonacoEnvironment = {
   }
 }
 
-/**
- * 注册 YAML 语言服务（语法校验、自动补全等）
- * enableSchemaRequest: false —— 不从远程拉取 schema，仅做本地语法校验
- */
-configureMonacoYaml(monaco, {
+// JSON 语言服务 schema 注册
+// fileMatch: * —— 所有 json 文件都应用此 schema（组件内编辑器默认 uri 匹配）
+monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+  validate: true,
+  allowComments: false,
   enableSchemaRequest: false,
-  schemas: []
+  schemas: [
+    {
+      uri: SCHEMA_URL,
+      fileMatch: ["*"],
+      schema: etlConfigSchema
+    }
+  ]
+})
+
+// YAML 语言服务 schema 注册
+// monaco-yaml 复用同一份 JSON schema 做补全/校验
+configureMonacoYaml(monaco, {
+  validate: true,
+  enableSchemaRequest: false,
+  schemas: [
+    {
+      uri: SCHEMA_URL,
+      fileMatch: ["*"],
+      schema: etlConfigSchema
+    }
+  ]
 })
 
 export { monaco }

@@ -29,8 +29,6 @@ const DEFAULT_FORM_DATA: CreateOrUpdateTableRequestData = {
 const dialogVisible = ref<boolean>(false)
 
 const formRef = useTemplateRef("formRef")
-const editorRef = useTemplateRef("editorRef")
-
 const formData = ref<CreateOrUpdateTableRequestData>(cloneDeep(DEFAULT_FORM_DATA))
 
 const formRules: FormRules<CreateOrUpdateTableRequestData> = {
@@ -66,7 +64,6 @@ function handleCreateOrUpdate() {
 function resetForm() {
   formRef.value?.clearValidate()
   formData.value = cloneDeep(DEFAULT_FORM_DATA)
-  editorRef.value?.resetFullscreen()
 }
 // #endregion
 
@@ -267,10 +264,10 @@ onMounted(() => {
       </div>
     </el-card>
     <!-- 新增/修改 -->
-    <el-dialog
+    <el-drawer
       v-model="dialogVisible"
       :title="formData.id === undefined ? '新增' : '修改'"
-      width="30%"
+      size="50%"
       @closed="resetForm"
     >
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="120px" label-position="right">
@@ -300,7 +297,7 @@ onMounted(() => {
         </el-form-item>
 
         <el-form-item prop="config" label="任务配置">
-          <Editor ref="editorRef" v-model="formData.config" class="editor" />
+          <Editor v-model="formData.config" class="editor" :height="formData.type === 1 ? 350 : 300" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -311,7 +308,7 @@ onMounted(() => {
           确认
         </el-button>
       </template>
-    </el-dialog>
+    </el-drawer>
 
     <RunJobDialog
       ref="runJobDialogRef"
@@ -342,7 +339,6 @@ onMounted(() => {
   justify-content: flex-end;
 }
 
-//
 .editor {
   border: 2px solid var(--el-border-color);
   border-radius: var(--el-border-radius-base);

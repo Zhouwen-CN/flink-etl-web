@@ -8,9 +8,6 @@ import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
 import JsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker"
 import { configureMonacoYaml } from "monaco-yaml"
 import YamlWorker from "monaco-yaml/yaml.worker?worker"
-import etlConfigSchema from "./schema/etl-config.json"
-
-const SCHEMA_URL = "https://pub-cf5b6601ddf74ca1b2fe3e5a215f6d8f.r2.dev/job-config-schema.json"
 
 /**
  * 配置 Monaco 的 Web Worker
@@ -29,13 +26,12 @@ globalThis.MonacoEnvironment = {
 // fileMatch: * —— 所有 json 文件都应用此 schema（组件内编辑器默认 uri 匹配）
 monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
   validate: true,
+  enableSchemaRequest: true,
   allowComments: false,
-  enableSchemaRequest: false,
   schemas: [
     {
-      uri: SCHEMA_URL,
-      fileMatch: ["*"],
-      schema: etlConfigSchema
+      uri: import.meta.env.VITE_CONFIG_SCHEMA_URL,
+      fileMatch: ["*"]
     }
   ]
 })
@@ -44,12 +40,11 @@ monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
 // monaco-yaml 复用同一份 JSON schema 做补全/校验
 configureMonacoYaml(monaco, {
   validate: true,
-  enableSchemaRequest: false,
+  enableSchemaRequest: true,
   schemas: [
     {
-      uri: SCHEMA_URL,
-      fileMatch: ["*"],
-      schema: etlConfigSchema
+      uri: import.meta.env.VITE_CONFIG_SCHEMA_URL,
+      fileMatch: ["*"]
     }
   ]
 })

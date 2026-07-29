@@ -6,6 +6,7 @@ interface ImportMetaEnv {
   readonly VITE_PUBLIC_PATH: string
   readonly VITE_SPRINGBOOT_ADMIN_URL: string
   readonly VITE_SWAGGER_URL: string
+  readonly VITE_CONFIG_SCHEMA_URL: string
 }
 
 interface ImportMeta {

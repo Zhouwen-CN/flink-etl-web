@@ -10,7 +10,7 @@ interface Props {
   /** 是否禁用（只读） */
   disabled?: boolean
   /** 编辑器高度 */
-  height?: string
+  height?: number
   /** 强制语言；不传则按内容自动识别（{ 或 [ 开头为 JSON，否则 YAML） */
   language?: "json" | "yaml"
 }
@@ -18,27 +18,17 @@ interface Props {
 const {
   placeholder = "请输入内容",
   disabled = false,
-  height = "200px",
+  height = 200,
   language
 } = defineProps<Props>()
 
 // 与父组件双向绑定的文本内容
 const model = defineModel<string>()
 
-// 是否处于全屏状态
-const isFullscreen = ref(false)
-
-const fullscreenIcon = computed(() => (isFullscreen.value ? "fullscreen-exit" : "fullscreen"))
-
 // Monaco 挂载点与实例
 const editorEl = ref<HTMLElement>()
 let editor: Monaco.editor.IStandaloneCodeEditor | null = null
 let resizeObserver: ResizeObserver | null = null
-
-// 全屏时撑满视口，否则用 height prop
-const editorStyle = computed(() => ({
-  height: isFullscreen.value ? "calc(100vh - 16px)" : height
-}))
 
 /**
  * 按内容自动识别语言
@@ -50,28 +40,17 @@ function detectLanguage(value: string | undefined): "json" | "yaml" {
   return "yaml"
 }
 
-/**
- * 将项目主题名映射为 Monaco 内置主题
- * normal -> vs（浅色），dark / dark-blue -> vs-dark（深色）
- */
-function resolveTheme(name: string | undefined): string {
-  return name === "dark" || name === "dark-blue" ? "vs-dark" : "vs"
-}
-
-const { activeThemeName } = useTheme()
-
 // 只读状态随 disabled prop 动态切换
 watch(
   () => disabled,
   val => editor?.updateOptions({ readOnly: val })
 )
 
-// 行号跟随全屏状态：全屏时显示，恢复时隐藏
-watch(isFullscreen, (val) => {
-  editor?.updateOptions({ lineNumbers: val ? "on" : "off" })
-})
-
 // 主题切换时同步到 Monaco
+const { activeThemeName } = useTheme()
+function resolveTheme(name: string | undefined): string {
+  return name === "dark" || name === "dark-blue" ? "vs-dark" : "vs"
+}
 watch(activeThemeName, (name) => {
   if (editor) monaco.editor.setTheme(resolveTheme(name))
 })
@@ -110,7 +89,7 @@ onMounted(() => {
     tabSize: 2,
     fontSize: 14,
     lineNumbers: "off",
-    scrollbar: { verticalScrollbarSize: 8, horizontalScrollbarSize: 8 }
+    scrollbar: { horizontal: "hidden", verticalScrollbarSize: 8 }
   })
 
   // 编辑器内容变化：同步到 v-model，并在未指定语言时按内容重新识别
@@ -126,7 +105,7 @@ onMounted(() => {
     }
   })
 
-  // 容器尺寸变化（全屏切换 / 弹窗缩放）时重算编辑器布局
+  // 容器尺寸变化时重算编辑器布局
   resizeObserver = new ResizeObserver(() => editor?.layout())
   resizeObserver.observe(editorEl.value)
 })
@@ -139,75 +118,14 @@ onBeforeUnmount(() => {
   editor?.dispose()
   editor = null
 })
-
-function toggleFullscreen() {
-  isFullscreen.value = !isFullscreen.value
-}
-
-// 全屏时拦截 ESC，先退出全屏而非关闭外层弹窗
-function handleKeydown(e: KeyboardEvent) {
-  if (e.key === "Escape" && isFullscreen.value) {
-    e.stopPropagation()
-    isFullscreen.value = false
-  }
-}
-
-// 进入全屏时注册 ESC 监听，退出时自动移除
-watchEffect(() => {
-  if (isFullscreen.value) {
-    document.addEventListener("keydown", handleKeydown, true)
-    onWatcherCleanup(() => {
-      document.removeEventListener("keydown", handleKeydown, true)
-    })
-  }
-})
-
-defineExpose({
-  // 供父组件在表单重置时复位全屏状态
-  resetFullscreen: () => {
-    isFullscreen.value = false
-  }
-})
 </script>
 
 <template>
-  <div class="editor-container" :class="{ 'is-fullscreen': isFullscreen }">
-    <SvgIcon :name="fullscreenIcon" class="fullscreen-icon" @click="toggleFullscreen" />
-    <div ref="editorEl" class="editor-body" :style="editorStyle" />
-  </div>
+  <div ref="editorEl" class="editor-body" :style="{ height: `${height}px` }" />
 </template>
 
 <style lang="scss" scoped>
-.editor-container {
-  position: relative;
-  width: 100%;
-}
-
-.fullscreen-icon {
-  position: absolute;
-  top: 6px;
-  right: 8px;
-  z-index: 10;
-  font-size: 18px;
-  color: var(--el-text-color-secondary);
-  cursor: pointer;
-  &:hover {
-    color: var(--el-color-primary);
-  }
-  &:focus {
-    outline: none;
-  }
-}
-
 .editor-body {
   width: 100%;
-}
-
-.editor-container.is-fullscreen {
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
-  padding: 8px;
-  background-color: var(--el-bg-color);
 }
 </style>

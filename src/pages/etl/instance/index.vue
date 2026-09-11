@@ -4,7 +4,7 @@ import { usePagination } from "@@/composables/usePagination"
 import { Refresh, Search } from "@element-plus/icons-vue"
 import { getDictionaryDataApi } from "@/common/apis/dict"
 import useDictionary from "@/common/composables/useDictionary"
-import { deleteJobInstanceDataApi, getClusterSelectorDataApi, getJarSelectorDataApi, getJobSelectorDataApi, getStatusSelectorDataApi, getStopjobDataApi, getTableDataApi } from "./apis"
+import { deleteJobInstanceDataApi, getClusterSelectorDataApi, getJarSelectorDataApi, getJobSelectorDataApi, getStatusSelectorDataApi, getStopjobDataApi, getTableDataApi, remappingJobInstanceDataApi } from "./apis"
 
 const loading = ref<boolean>(false)
 
@@ -117,6 +117,23 @@ function formatDuration(duration: number) {
   }
 }
 
+// 监听选择变化
+const selectedRows = ref<string[]>([])
+function handleSelectionChange(selection: TableData[]) {
+  selectedRows.value = selection.map(user => user.id)
+}
+
+function handleRemapping() {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning("请选择要重新映射的实例")
+    return
+  }
+  remappingJobInstanceDataApi(selectedRows.value).then(() => {
+    ElMessage.success("操作成功")
+    getTableData()
+  })
+}
+
 onMounted(() => {
   getJobTypeSelectorData("job_type")
   getClusterSelectorData()
@@ -174,12 +191,16 @@ onMounted(() => {
           <el-button :icon="Refresh" @click="resetSearch">
             重置
           </el-button>
+          <el-button class="remapping-btn" type="primary" @click="handleRemapping">
+            重新映射
+          </el-button>
         </el-form-item>
       </el-form>
     </el-card>
     <el-card v-loading="loading" shadow="never">
       <div class="table-wrapper">
-        <el-table :data="tableData" show-overflow-tooltip>
+        <el-table :data="tableData" show-overflow-tooltip @selection-change="handleSelectionChange">
+          <el-table-column type="selection" width="50" align="center" />
           <el-table-column prop="id" label="任务实例ID" align="center" />
           <el-table-column prop="clusterId" label="集群名称" align="center">
             <template #default="scope">
@@ -243,6 +264,9 @@ onMounted(() => {
   margin-bottom: 20px;
   :deep(.el-card__body) {
     padding-bottom: 2px;
+  }
+  .remapping-btn {
+    margin-left: auto;
   }
 }
 

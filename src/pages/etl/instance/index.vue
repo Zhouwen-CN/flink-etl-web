@@ -117,20 +117,19 @@ function formatDuration(duration: number) {
   }
 }
 
-// 监听选择变化
-const selectedRows = ref<string[]>([])
-function handleSelectionChange(selection: TableData[]) {
-  selectedRows.value = selection.map(user => user.id)
-}
-
 function handleRemapping() {
-  if (selectedRows.value.length === 0) {
-    ElMessage.warning("请选择要重新映射的实例")
-    return
-  }
-  remappingJobInstanceDataApi(selectedRows.value).then(() => {
-    ElMessage.success("操作成功")
-    getTableData()
+  ElMessageBox.confirm(`重新映射所有 UNKNOWN 状态的实例？`, "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning"
+  }).then(() => {
+    loading.value = true
+    remappingJobInstanceDataApi().then(() => {
+      ElMessage.success("操作成功")
+      getTableData()
+    }).finally(() => {
+      loading.value = false
+    })
   })
 }
 
@@ -199,8 +198,7 @@ onMounted(() => {
     </el-card>
     <el-card v-loading="loading" shadow="never">
       <div class="table-wrapper">
-        <el-table :data="tableData" show-overflow-tooltip @selection-change="handleSelectionChange">
-          <el-table-column type="selection" width="50" align="center" />
+        <el-table :data="tableData" show-overflow-tooltip>
           <el-table-column prop="id" label="任务实例ID" align="center" />
           <el-table-column prop="clusterId" label="集群名称" align="center">
             <template #default="scope">

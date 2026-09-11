@@ -60,12 +60,9 @@ export function deleteJobInstanceDataApi(id: string) {
 }
 
 /** 重新映射实例 */
-export function remappingJobInstanceDataApi(ids: string[]) {
+export function remappingJobInstanceDataApi() {
   return request({
     url: "instance/remapping",
-    method: "patch",
-    data: {
-      ids
-    }
+    method: "patch"
   })
 }

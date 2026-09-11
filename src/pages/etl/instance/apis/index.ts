@@ -62,7 +62,10 @@ export function deleteJobInstanceDataApi(id: string) {
 /** 重新映射实例 */
 export function remappingJobInstanceDataApi(ids: string[]) {
   return request({
-    url: `instance/remapping?ids=${ids.join(",")}`,
-    method: "patch"
+    url: "instance/remapping",
+    method: "patch",
+    data: {
+      ids
+    }
   })
 }

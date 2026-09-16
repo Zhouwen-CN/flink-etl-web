@@ -177,14 +177,6 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     },
     children: [
       {
-        path: "schedule",
-        component: () => import("@/pages/etl/schedule/index.vue"),
-        name: "schedule",
-        meta: {
-          title: "定时任务"
-        }
-      },
-      {
         path: "job",
         component: () => import("@/pages/etl/job/index.vue"),
         name: "job",
@@ -200,6 +192,14 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: {
           title: "任务实例",
           roles: ["admin", "dev"]
+        }
+      },
+      {
+        path: "schedule",
+        component: () => import("@/pages/etl/schedule/index.vue"),
+        name: "schedule",
+        meta: {
+          title: "定时任务"
         }
       },
       {

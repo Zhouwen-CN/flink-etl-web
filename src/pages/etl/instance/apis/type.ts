@@ -14,6 +14,7 @@ export interface TableRequestData {
 export interface TableData {
   id: string
   clusterId: number
+  jobManagerUrl: string
   jarId: number
   jobId: number
   jobType: number

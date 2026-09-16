@@ -85,6 +85,11 @@ function handleDelete(row: TableData) {
   })
 }
 
+// 跳转到 Flink Web UI 查看任务
+function handleToFlink(row: TableData) {
+  window.open(`${row.jobManagerUrl}/#/job/${row.id}/overview`, "_blank")
+}
+
 // 监听分页参数的变化
 watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData)
 
@@ -207,7 +212,13 @@ onMounted(() => {
     <el-card v-loading="loading" shadow="never">
       <div class="table-wrapper">
         <el-table :data="tableData" show-overflow-tooltip>
-          <el-table-column prop="id" label="任务实例ID" align="center" />
+          <el-table-column prop="id" label="任务实例ID" align="center">
+            <template #default="scope">
+              <el-link type="primary" :underline="false" @click="handleToFlink(scope.row)">
+                {{ scope.row.id }}
+              </el-link>
+            </template>
+          </el-table-column>
           <el-table-column prop="clusterId" label="集群名称" align="center">
             <template #default="scope">
               {{ clusterSelectorMap.get(scope.row.clusterId) }}

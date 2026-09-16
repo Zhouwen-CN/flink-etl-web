@@ -8,6 +8,8 @@ import { deleteJobInstanceDataApi, getClusterSelectorDataApi, getJarSelectorData
 
 const loading = ref<boolean>(false)
 
+const route = useRoute()
+
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 
 // #region 查
@@ -18,7 +20,7 @@ const searchFormRef = useTemplateRef("searchFormRef")
 const searchData = reactive({
   instanceId: undefined,
   clusterId: undefined,
-  jobId: undefined,
+  jobId: undefined as number | undefined,
   jobType: undefined,
   status: undefined
 })
@@ -84,7 +86,7 @@ function handleDelete(row: TableData) {
 }
 
 // 监听分页参数的变化
-watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
+watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData)
 
 const { dictData: jobTypeSelectorData, dictMap: jobTypeSelectorMap, run: getJobTypeSelectorData } = useDictionary(getDictionaryDataApi)
 const { dictData: clusterSelectorData, dictMap: clusterSelectorMap, run: getClusterSelectorData } = useDictionary(getClusterSelectorDataApi)
@@ -139,6 +141,12 @@ onMounted(() => {
   getJobIdSelectorData()
   getStatusSelectorData()
   getJarSelectorData()
+  // 支持通过 url 参数（如 /etl/instance?jobId=xx）跳转并选中任务
+  const { jobId } = route.query
+  if (jobId) {
+    searchData.jobId = Number(jobId)
+  }
+  getTableData()
 })
 </script>
 

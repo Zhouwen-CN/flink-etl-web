@@ -10,6 +10,8 @@ import useDictionary from "@/common/composables/useDictionary"
 import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getClusterSelectorDataApi, getJarSelectorDataApi, getTableDataApi, updateTableDataApi } from "./apis/index"
 import RunJobDialog from "./components/RunJobDialog/index.vue"
 
+const router = useRouter()
+
 const loading = ref<boolean>(false)
 
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
@@ -155,6 +157,14 @@ function handleRun(row: TableData) {
 }
 // #endregion
 
+// 跳转到任务实例页，并选中对应任务
+function handleToInstance(row: TableData) {
+  router.push({
+    path: "/etl/instance",
+    query: { jobId: row.id }
+  })
+}
+
 // 监听分页参数的变化
 watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
 
@@ -212,7 +222,13 @@ onMounted(() => {
       <div class="table-wrapper">
         <el-table :data="tableData" @selection-change="handleSelectionChange" show-overflow-tooltip>
           <el-table-column type="selection" width="50" align="center" />
-          <el-table-column prop="name" label="任务名称" align="center" />
+          <el-table-column prop="name" label="任务名称" align="center" min-width="180">
+            <template #default="scope">
+              <el-link type="primary" :underline="false" @click="handleToInstance(scope.row)">
+                {{ scope.row.name }}
+              </el-link>
+            </template>
+          </el-table-column>
           <el-table-column prop="type" label="任务类型" align="center">
             <template #default="scope">
               {{ jobTypeSelectorMap.get(scope.row.type) }}
@@ -228,7 +244,7 @@ onMounted(() => {
               {{ jarSelectorMap.get(scope.row.jarId) }}
             </template>
           </el-table-column>
-          <el-table-column prop="parallelism" label="并行度" min-width="45" align="center" />
+          <el-table-column prop="parallelism" label="并行度" min-width="50" align="center" />
           <el-table-column prop="checkpointInterval" label="检查点间隔" align="center">
             <template #default="scope">
               {{ scope.row.checkpointInterval ? `${scope.row.checkpointInterval}ms` : "-" }}

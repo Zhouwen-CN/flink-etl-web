@@ -177,11 +177,20 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     },
     children: [
       {
+        path: "project",
+        component: () => import("@/pages/etl/project/index.vue"),
+        name: "project",
+        meta: {
+          title: "项目管理",
+          roles: ["admin", "dev"]
+        }
+      },
+      {
         path: "job",
         component: () => import("@/pages/etl/job/index.vue"),
         name: "job",
         meta: {
-          title: "ETL 任务",
+          title: "任务管理",
           roles: ["admin", "dev"]
         }
       },
@@ -207,7 +216,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         component: () => import("@/pages/etl/cluster/index.vue"),
         name: "cluster",
         meta: {
-          title: "Flink 集群",
+          title: "集群管理",
           roles: ["admin"]
         }
       },
@@ -216,7 +225,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         component: () => import("@/pages/etl/jar/index.vue"),
         name: "jar",
         meta: {
-          title: "Jar 包管理",
+          title: "Jar包管理",
           roles: ["admin"]
         }
       }

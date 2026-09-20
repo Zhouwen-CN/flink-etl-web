@@ -11,6 +11,14 @@ export function getTableDataApi(params: Tables.TableRequestData) {
   })
 }
 
+/** 查项目选择器数据 */
+export function getProjectSelectorDataApi() {
+  return request<DictionaryResponseData>({
+    url: "instance/project/selector",
+    method: "get"
+  })
+}
+
 /** 查集群选择器数据 */
 export function getClusterSelectorDataApi() {
   return request<DictionaryResponseData>({

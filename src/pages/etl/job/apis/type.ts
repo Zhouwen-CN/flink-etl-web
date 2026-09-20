@@ -1,9 +1,8 @@
-import type { DictionaryData } from "@/common/apis/dict/type"
-
 export interface CreateOrUpdateTableRequestData {
   id?: number
   name?: string
   type: number
+  projectId?: number
   clusterId?: number
   jarId?: number
   parallelism: number
@@ -24,12 +23,15 @@ export interface TableRequestData {
   name?: string
   /** 查询参数：任务类型 */
   type?: number
+  /** 查询参数：项目ID */
+  projectId?: number
 }
 
 export interface TableData {
   id: number
   name: string
   type: number
+  projectId: number
   clusterId: number
   jarId: number
   parallelism: number
@@ -47,6 +49,3 @@ export interface RunJobRequestData {
   id?: number
   savepointPath?: string
 }
-
-export type ClusterSelectorDataResponseData = ApiResponseData<DictionaryData[]>
-export type JarSelectorDataResponseData = ApiResponseData<DictionaryData[]>

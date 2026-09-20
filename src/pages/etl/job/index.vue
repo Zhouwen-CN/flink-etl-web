@@ -7,10 +7,11 @@ import { CirclePlus, Delete, Download, Refresh, RefreshRight, Search } from "@el
 import { cloneDeep } from "lodash-es"
 import { getDictionaryDataApi } from "@/common/apis/dict"
 import useDictionary from "@/common/composables/useDictionary"
-import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getClusterSelectorDataApi, getJarSelectorDataApi, getTableDataApi, updateTableDataApi } from "./apis/index"
+import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getClusterSelectorDataApi, getJarSelectorDataApi, getProjectSelectorDataApi, getTableDataApi, updateTableDataApi } from "./apis/index"
 import RunJobDialog from "./components/RunJobDialog/index.vue"
 
 const router = useRouter()
+const route = useRoute()
 
 const loading = ref<boolean>(false)
 
@@ -21,6 +22,7 @@ const DEFAULT_FORM_DATA: CreateOrUpdateTableRequestData = {
   id: undefined,
   name: undefined,
   type: 1,
+  projectId: undefined,
   clusterId: undefined,
   jarId: undefined,
   parallelism: 1,
@@ -35,8 +37,9 @@ const formData = ref<CreateOrUpdateTableRequestData>(cloneDeep(DEFAULT_FORM_DATA
 
 const formRules: FormRules<CreateOrUpdateTableRequestData> = {
   name: [{ required: true, trigger: "blur", message: "请输入昵称" }],
-  clusterId: [{ required: true, trigger: "blur", message: "请选择集群ID" }],
-  jarId: [{ required: true, trigger: "blur", message: "请选择JarID" }],
+  projectId: [{ required: true, trigger: "blur", message: "请选择项目" }],
+  clusterId: [{ required: true, trigger: "blur", message: "请选择集群" }],
+  jarId: [{ required: true, trigger: "blur", message: "请选择Jar" }],
   config: [{ required: true, trigger: "blur", message: "请输入配置" }],
   type: [{ required: true, trigger: "blur", message: "请选择任务类型" }]
 }
@@ -120,7 +123,8 @@ const searchFormRef = useTemplateRef("searchFormRef")
 
 const searchData = reactive({
   name: "",
-  type: undefined
+  type: undefined,
+  projectId: undefined as number | undefined
 })
 
 function getTableData() {
@@ -129,7 +133,8 @@ function getTableData() {
     currentPage: paginationData.currentPage,
     pageSize: paginationData.pageSize,
     name: searchData.name,
-    type: searchData.type
+    type: searchData.type,
+    projectId: searchData.projectId
   }).then(({ data }) => {
     paginationData.total = data.total
     tableData.value = data.list
@@ -166,15 +171,24 @@ function handleToInstance(row: TableData) {
 }
 
 // 监听分页参数的变化
-watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
+watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData)
 
 const { dictData: clusterSelectorData, dictMap: clusterSelectorMap, run: getClusterSelectorData } = useDictionary(getClusterSelectorDataApi)
 const { dictData: jarSelectorData, dictMap: jarSelectorMap, run: getJarSelectorData } = useDictionary(getJarSelectorDataApi)
 const { dictData: jobTypeSelectorData, dictMap: jobTypeSelectorMap, run: getJobTypeSelectorData } = useDictionary(getDictionaryDataApi)
+const { dictData: projectSelectorData, dictMap: projectSelectorMap, run: getProjectSelectorData } = useDictionary(getProjectSelectorDataApi)
+
 onMounted(() => {
+  getProjectSelectorData()
   getClusterSelectorData()
   getJarSelectorData()
   getJobTypeSelectorData("job_type")
+
+  const { projectId } = route.query
+  if (projectId) {
+    searchData.projectId = Number(projectId)
+  }
+  getTableData()
 })
 </script>
 
@@ -188,6 +202,11 @@ onMounted(() => {
         <el-form-item prop="type" label="任务类型">
           <el-select v-model="searchData.type" placeholder="请选择" clearable style="width: 180px">
             <el-option v-for="item in jobTypeSelectorData" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item prop="projectId" label="项目名称">
+          <el-select v-model="searchData.projectId" placeholder="请选择" clearable filterable style="width: 180px">
+            <el-option v-for="item in projectSelectorData" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -232,6 +251,11 @@ onMounted(() => {
           <el-table-column prop="type" label="任务类型" align="center">
             <template #default="scope">
               {{ jobTypeSelectorMap.get(scope.row.type) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="projectId" label="项目名称" align="center">
+            <template #default="scope">
+              {{ projectSelectorMap.get(scope.row.projectId) }}
             </template>
           </el-table-column>
           <el-table-column prop="clusterId" label="flink集群" align="center">
@@ -285,6 +309,7 @@ onMounted(() => {
       :title="formData.id === undefined ? '新增' : '修改'"
       size="50%"
       @closed="resetForm"
+      :close-on-click-modal="false"
     >
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="120px" label-position="right">
         <el-form-item prop="name" label="任务名称">
@@ -293,6 +318,11 @@ onMounted(() => {
         <el-form-item prop="type" label="任务类型">
           <el-select v-model="formData.type" placeholder="请选择">
             <el-option v-for="item in jobTypeSelectorData" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item prop="projectId" label="项目名称">
+          <el-select v-model="formData.projectId" placeholder="请选择">
+            <el-option v-for="item in projectSelectorData" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item prop="clusterId" label="flink集群">

@@ -4,7 +4,7 @@ import { usePagination } from "@@/composables/usePagination"
 import { Refresh, Search } from "@element-plus/icons-vue"
 import { getDictionaryDataApi } from "@/common/apis/dict"
 import useDictionary from "@/common/composables/useDictionary"
-import { deleteJobInstanceDataApi, getClusterSelectorDataApi, getJarSelectorDataApi, getJobSelectorDataApi, getStatusSelectorDataApi, getStopjobDataApi, getTableDataApi, remappingJobInstanceDataApi } from "./apis"
+import { deleteJobInstanceDataApi, getClusterSelectorDataApi, getJarSelectorDataApi, getJobSelectorDataApi, getProjectSelectorDataApi, getStatusSelectorDataApi, getStopjobDataApi, getTableDataApi, remappingJobInstanceDataApi } from "./apis"
 
 const loading = ref<boolean>(false)
 
@@ -18,6 +18,7 @@ const tableData = ref<TableData[]>([])
 const searchFormRef = useTemplateRef("searchFormRef")
 
 const searchData = reactive({
+  projectId: undefined,
   instanceId: undefined,
   clusterId: undefined,
   jobId: undefined as number | undefined,
@@ -30,6 +31,7 @@ function getTableData() {
   getTableDataApi({
     currentPage: paginationData.currentPage,
     pageSize: paginationData.pageSize,
+    projectId: searchData.projectId,
     instanceId: searchData.instanceId,
     clusterId: searchData.clusterId,
     jobId: searchData.jobId,
@@ -93,6 +95,8 @@ function handleToFlink(row: TableData) {
 // 监听分页参数的变化
 watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData)
 
+// 查项目选择器数据
+const { dictData: projectSelectorData, dictMap: projectSelectorMap, run: getProjectSelectorData } = useDictionary(getProjectSelectorDataApi)
 const { dictData: jobTypeSelectorData, dictMap: jobTypeSelectorMap, run: getJobTypeSelectorData } = useDictionary(getDictionaryDataApi)
 const { dictData: clusterSelectorData, dictMap: clusterSelectorMap, run: getClusterSelectorData } = useDictionary(getClusterSelectorDataApi)
 const { dictData: jobIdSelectorData, dictMap: jobIdSelectorMap, run: getJobIdSelectorData } = useDictionary(getJobSelectorDataApi)
@@ -142,6 +146,7 @@ function handleRemapping() {
 
 onMounted(() => {
   getJobTypeSelectorData("job_type")
+  getProjectSelectorData()
   getClusterSelectorData()
   getJobIdSelectorData()
   getStatusSelectorData()
@@ -175,12 +180,19 @@ onMounted(() => {
             </el-form-item>
           </el-col>
           <el-col :span="6">
-            <el-form-item prop="instanceId" label="实例ID">
+            <el-form-item prop="instanceId" label="实例 ID">
               <el-input v-model="searchData.instanceId" placeholder="请输入" style="width: 180px" clearable />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
+          <el-col :span="6">
+            <el-form-item prop="projectId" label="项目名称">
+              <el-select v-model="searchData.projectId" placeholder="请选择" style="width: 180px" clearable filterable>
+                <el-option v-for="item in projectSelectorData" :key="item.value" :label="item.label" :value="item.value" />
+              </el-select>
+            </el-form-item>
+          </el-col>
           <el-col :span="6">
             <el-form-item prop="clusterId" label="集群名称">
               <el-select v-model="searchData.clusterId" placeholder="请选择" style="width: 180px" clearable>
@@ -219,11 +231,6 @@ onMounted(() => {
               </el-link>
             </template>
           </el-table-column>
-          <el-table-column prop="clusterId" label="集群名称" align="center">
-            <template #default="scope">
-              {{ clusterSelectorMap.get(scope.row.clusterId) }}
-            </template>
-          </el-table-column>
           <el-table-column prop="jobId" label="任务名称" align="center">
             <template #default="scope">
               {{ jobIdSelectorMap.get(scope.row.jobId) }}
@@ -232,6 +239,16 @@ onMounted(() => {
           <el-table-column prop="jobType" label="任务类型" align="center">
             <template #default="scope">
               {{ jobTypeSelectorMap.get(scope.row.jobType) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="projectId" label="项目名称" align="center">
+            <template #default="scope">
+              {{ projectSelectorMap.get(scope.row.projectId) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="clusterId" label="集群名称" align="center">
+            <template #default="scope">
+              {{ clusterSelectorMap.get(scope.row.clusterId) }}
             </template>
           </el-table-column>
           <el-table-column prop="status" label="任务状态" align="center" />

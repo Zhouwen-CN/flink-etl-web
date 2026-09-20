@@ -1,4 +1,5 @@
 import type * as User from "./type"
+import type { DictionaryResponseData } from "@/common/apis/dict/type"
 import { request } from "@/http/axios"
 
 /** 增 */
@@ -45,9 +46,16 @@ export function getTableDataApi(params: User.TableRequestData) {
   })
 }
 
+export function getProjectSelectorDataApi() {
+  return request<DictionaryResponseData>({
+    url: "job/project/selector",
+    method: "get"
+  })
+}
+
 /** 查集群选择器数据 */
 export function getClusterSelectorDataApi() {
-  return request<User.ClusterSelectorDataResponseData>({
+  return request<DictionaryResponseData>({
     url: "job/cluster/selector",
     method: "get"
   })
@@ -55,7 +63,7 @@ export function getClusterSelectorDataApi() {
 
 /** 查jar包选择器数据 */
 export function getJarSelectorDataApi() {
-  return request<User.JarSelectorDataResponseData>({
+  return request<DictionaryResponseData>({
     url: "job/jar/selector",
     method: "get"
   })

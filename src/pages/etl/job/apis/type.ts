@@ -1,6 +1,7 @@
 export interface CreateOrUpdateTableRequestData {
   id?: number
   name?: string
+  description?: string
   type: number
   projectId?: number
   clusterId?: number
@@ -30,6 +31,7 @@ export interface TableRequestData {
 export interface TableData {
   id: number
   name: string
+  description: string
   type: number
   projectId: number
   clusterId: number

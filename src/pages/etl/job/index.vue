@@ -21,6 +21,7 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 const DEFAULT_FORM_DATA: CreateOrUpdateTableRequestData = {
   id: undefined,
   name: undefined,
+  description: undefined,
   type: 1,
   projectId: undefined,
   clusterId: undefined,
@@ -268,10 +269,15 @@ onMounted(() => {
               {{ jarSelectorMap.get(scope.row.jarId) }}
             </template>
           </el-table-column>
-          <el-table-column prop="parallelism" label="并行度" min-width="50" align="center" />
-          <el-table-column prop="checkpointInterval" label="检查点间隔" align="center">
+          <el-table-column prop="parallelism" label="并行度" align="center" min-width="60" />
+          <el-table-column prop="checkpointInterval" label="检查点间隔" align="center" min-width="90">
             <template #default="scope">
               {{ scope.row.checkpointInterval ? `${scope.row.checkpointInterval}ms` : "-" }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="description" label="任务描述" align="center" min-width="70">
+            <template #default="scope">
+              {{ scope.row.description || "-" }}
             </template>
           </el-table-column>
           <el-table-column prop="updateTime" label="更新时间" align="center" />
@@ -335,15 +341,17 @@ onMounted(() => {
             <el-option v-for="item in jarSelectorData" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
+        <el-form-item prop="description" label="任务描述">
+          <el-input v-model="formData.description" placeholder="请输入" />
+        </el-form-item>
         <el-form-item prop="parallelism" label="并行度">
           <el-input-number v-model="formData.parallelism" placeholder="请输入" />
         </el-form-item>
         <el-form-item v-if="formData.type === 2" prop="checkpointInterval" label="检查点间隔(ms)">
           <el-input-number v-model="formData.checkpointInterval" placeholder="请输入" />
         </el-form-item>
-
         <el-form-item prop="config" label="任务配置">
-          <Editor v-model="formData.config" class="editor" :height="formData.type === 1 ? 350 : 300" />
+          <Editor v-model="formData.config" class="editor" :height="formData.type === 1 ? 280 : 230" />
         </el-form-item>
       </el-form>
       <template #footer>

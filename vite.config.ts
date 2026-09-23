@@ -39,9 +39,9 @@ export default defineConfig(({ mode }) => {
           // 是否为 WebSocket
           ws: false,
           // 是否允许跨域
-          changeOrigin: true,
+          changeOrigin: true
           // 删除前缀
-          rewrite: path => path.replace(new RegExp(`^${VITE_BASE_URL}`), "")
+          // rewrite: path => path.replace(new RegExp(`^${VITE_BASE_URL}`), "")
         }
       },
       // 是否允许跨域

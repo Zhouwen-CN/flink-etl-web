@@ -96,7 +96,7 @@ function handleToFlink(row: TableData) {
 }
 
 // 监听分页参数的变化
-watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData)
+watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
 
 // 查项目选择器数据
 const { dictData: projectSelectorData, dictMap: projectSelectorMap, run: getProjectSelectorData } = useDictionary(getProjectSelectorDataApi)
@@ -154,12 +154,17 @@ onMounted(() => {
   getJobIdSelectorData()
   getStatusSelectorData()
   getJarSelectorData()
+})
+
+// 页面开启 keep-alive 后 onMounted 仅首次进入触发，改用 onActivated 每次激活时处理 url 参数
+onActivated(() => {
   // 支持通过 url 参数（如 /etl/instance?jobId=xx）跳转并选中任务
   const { jobId } = route.query
+  // 带参数跳转时设置筛选并刷新；不带参数则保持 keep-alive 缓存的状态，不刷新
   if (jobId) {
     searchData.jobId = Number(jobId)
+    getTableData()
   }
-  getTableData()
 })
 </script>
 

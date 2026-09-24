@@ -175,7 +175,7 @@ function handleToInstance(row: TableData) {
 }
 
 // 监听分页参数的变化
-watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData)
+watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
 
 const { dictData: clusterSelectorData, dictMap: clusterSelectorMap, run: getClusterSelectorData } = useDictionary(getClusterSelectorDataApi)
 const { dictData: jarSelectorData, dictMap: jarSelectorMap, run: getJarSelectorData } = useDictionary(getJarSelectorDataApi)
@@ -187,12 +187,16 @@ onMounted(() => {
   getClusterSelectorData()
   getJarSelectorData()
   getJobTypeSelectorData("job_type")
+})
 
+// 页面开启 keep-alive 后 onMounted 仅首次进入触发，改用 onActivated 每次激活时处理 url 参数
+onActivated(() => {
   const { projectId } = route.query
+  // 带参数跳转时设置筛选并刷新；不带参数则保持 keep-alive 缓存的状态，不刷新
   if (projectId) {
     searchData.projectId = Number(projectId)
+    getTableData()
   }
-  getTableData()
 })
 </script>
 

@@ -6,6 +6,9 @@ import { getDictionaryDataApi } from "@/common/apis/dict"
 import useDictionary from "@/common/composables/useDictionary"
 import { deleteJobInstanceDataApi, getClusterSelectorDataApi, getJarSelectorDataApi, getJobSelectorDataApi, getProjectSelectorDataApi, getStatusSelectorDataApi, getStopjobDataApi, getTableDataApi, remappingJobInstanceDataApi } from "./apis"
 
+/* eslint-disable vue/component-definition-name-casing */
+defineOptions({ name: "instance" })
+
 const loading = ref<boolean>(false)
 
 const route = useRoute()

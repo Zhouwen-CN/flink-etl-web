@@ -10,6 +10,9 @@ import useDictionary from "@/common/composables/useDictionary"
 import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getClusterSelectorDataApi, getJarSelectorDataApi, getProjectSelectorDataApi, getTableDataApi, updateTableDataApi } from "./apis/index"
 import RunJobDialog from "./components/RunJobDialog/index.vue"
 
+/* eslint-disable vue/component-definition-name-casing */
+defineOptions({ name: "job" })
+
 const router = useRouter()
 const route = useRoute()
 

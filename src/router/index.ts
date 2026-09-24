@@ -128,7 +128,6 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           title: "SpringBoot Admin",
           iframeUrl: import.meta.env.VITE_SPRINGBOOT_ADMIN_URL,
           keepAlive: true
-
         }
       } as RouteRecordRaw,
       {
@@ -191,7 +190,8 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         name: "job",
         meta: {
           title: "任务管理",
-          roles: ["admin", "dev"]
+          roles: ["admin", "dev"],
+          keepAlive: true
         }
       },
       {
@@ -200,7 +200,8 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         name: "instance",
         meta: {
           title: "任务实例",
-          roles: ["admin", "dev"]
+          roles: ["admin", "dev"],
+          keepAlive: true
         }
       },
       {

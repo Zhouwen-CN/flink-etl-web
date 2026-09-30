@@ -96,7 +96,7 @@ function handleToFlink(row: TableData) {
 }
 
 // 监听分页参数的变化
-watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
+watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData)
 
 // 查项目选择器数据
 const { dictData: projectSelectorData, dictMap: projectSelectorMap, run: getProjectSelectorData } = useDictionary(getProjectSelectorDataApi)
@@ -149,22 +149,25 @@ function handleRemapping() {
 
 onMounted(() => {
   getJobTypeSelectorData("job_type")
-  getProjectSelectorData()
   getClusterSelectorData()
-  getJobIdSelectorData()
   getStatusSelectorData()
   getJarSelectorData()
 })
 
-// 页面开启 keep-alive 后 onMounted 仅首次进入触发，改用 onActivated 每次激活时处理 url 参数
+// 首次激活负责初始化查询；之后仅在带 jobId 跳转时设置筛选并刷新，不带参数则保持缓存状态不请求
+let isFirstActivate = true
 onActivated(() => {
-  // 支持通过 url 参数（如 /etl/instance?jobId=xx）跳转并选中任务
+  // 经常会变的选择器请求，每次激活都重新刷新
+  getProjectSelectorData()
+  getJobIdSelectorData()
   const { jobId } = route.query
-  // 带参数跳转时设置筛选并刷新；不带参数则保持 keep-alive 缓存的状态，不刷新
   if (jobId) {
     searchData.jobId = Number(jobId)
+  }
+  if (isFirstActivate || jobId) {
     getTableData()
   }
+  isFirstActivate = false
 })
 </script>
 

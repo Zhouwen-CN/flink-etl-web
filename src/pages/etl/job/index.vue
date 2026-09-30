@@ -8,6 +8,7 @@ import { cloneDeep } from "lodash-es"
 import { getDictionaryDataApi } from "@/common/apis/dict"
 import useDictionary from "@/common/composables/useDictionary"
 import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getClusterSelectorDataApi, getJarSelectorDataApi, getProjectSelectorDataApi, getTableDataApi, updateTableDataApi } from "./apis/index"
+import CopyJobDialog from "./components/CopyJobDialog/index.vue"
 import RunJobDialog from "./components/RunJobDialog/index.vue"
 
 /* eslint-disable vue/component-definition-name-casing */
@@ -166,6 +167,13 @@ function handleRun(row: TableData) {
 }
 // #endregion
 
+// #region 复制
+const copyJobDialogRef = ref<InstanceType<typeof CopyJobDialog>>()
+function handleCopy(row: TableData) {
+  copyJobDialogRef.value?.showDialog(row)
+}
+// #endregion
+
 // 跳转到任务实例页，并选中对应任务
 function handleToInstance(row: TableData) {
   router.push({
@@ -175,7 +183,7 @@ function handleToInstance(row: TableData) {
 }
 
 // 监听分页参数的变化
-watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
+watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData)
 
 const { dictData: clusterSelectorData, dictMap: clusterSelectorMap, run: getClusterSelectorData } = useDictionary(getClusterSelectorDataApi)
 const { dictData: jarSelectorData, dictMap: jarSelectorMap, run: getJarSelectorData } = useDictionary(getJarSelectorDataApi)
@@ -183,20 +191,24 @@ const { dictData: jobTypeSelectorData, dictMap: jobTypeSelectorMap, run: getJobT
 const { dictData: projectSelectorData, dictMap: projectSelectorMap, run: getProjectSelectorData } = useDictionary(getProjectSelectorDataApi)
 
 onMounted(() => {
-  getProjectSelectorData()
   getClusterSelectorData()
   getJarSelectorData()
   getJobTypeSelectorData("job_type")
 })
 
-// 页面开启 keep-alive 后 onMounted 仅首次进入触发，改用 onActivated 每次激活时处理 url 参数
+// 首次激活负责初始化查询；之后仅在带 projectId 跳转时设置筛选并刷新，不带参数则保持缓存状态不请求
+let isFirstActivate = true
 onActivated(() => {
+  // 经常会变的选择器请求，每次激活都重新刷新
+  getProjectSelectorData()
   const { projectId } = route.query
-  // 带参数跳转时设置筛选并刷新；不带参数则保持 keep-alive 缓存的状态，不刷新
   if (projectId) {
     searchData.projectId = Number(projectId)
+  }
+  if (isFirstActivate || projectId) {
     getTableData()
   }
+  isFirstActivate = false
 })
 </script>
 
@@ -296,6 +308,9 @@ onActivated(() => {
               <el-button type="primary" text bg size="small" @click="handleUpdate(scope.row)">
                 修改
               </el-button>
+              <el-button type="info" text bg size="small" @click="handleCopy(scope.row)">
+                复制
+              </el-button>
               <el-button type="danger" text bg size="small" @click="handleDelete(scope.row)">
                 删除
               </el-button>
@@ -373,6 +388,11 @@ onActivated(() => {
 
     <RunJobDialog
       ref="runJobDialogRef"
+    />
+
+    <CopyJobDialog
+      ref="copyJobDialogRef"
+      @success="getTableData"
     />
   </div>
 </template>

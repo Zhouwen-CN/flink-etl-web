@@ -62,7 +62,6 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
             <el-option label="PUT" value="PUT" />
             <el-option label="DELETE" value="DELETE" />
             <el-option label="PATCH" value="PATCH" />
-            <el-option label="GET" value="GET" />
           </el-select>
         </el-form-item>
         <el-form-item>

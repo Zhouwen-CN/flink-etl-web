@@ -29,7 +29,7 @@ const formRules: FormRules<CreateTableRequestData> = {
 
 function handleCreateOrUpdate() {
   formRef.value?.validate((valid) => {
-    if (!valid || !formData.value.file) {
+    if (!valid) {
       ElMessage.error("表单校验不通过")
       return
     }

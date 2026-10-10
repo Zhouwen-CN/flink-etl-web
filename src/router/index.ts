@@ -107,6 +107,14 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: {
           title: "权限管理"
         }
+      },
+      {
+        path: "dept",
+        component: () => import("@/pages/auth/dept/index.vue"),
+        name: "dept",
+        meta: {
+          title: "部门管理"
+        }
       }
     ]
   },

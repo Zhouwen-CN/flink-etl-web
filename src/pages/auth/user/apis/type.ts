@@ -6,6 +6,7 @@ export interface CreateOrUpdateTableRequestData {
   gender: number
   status: boolean
   roleIds?: number[]
+  deptId?: number
 }
 
 export interface DeleteBatchTableRequestData {
@@ -27,6 +28,8 @@ export interface TableData {
   nickname: string
   gender: number
   status: boolean
+  deptId: number
+  updateTime: string
 }
 
 export type TableResponseData = ApiResponseData<{
@@ -36,9 +39,15 @@ export type TableResponseData = ApiResponseData<{
 
 export type RoleIdsResponseData = ApiResponseData<number[]>
 
-export interface RoleSelectorData {
-  label: string
-  value: number
+/** 部门树节点 */
+export interface DeptVO {
+  id: number
+  parentId: number | null
+  name: string
+  sort: number
+  createUser: string
+  updateTime: string
+  children: DeptVO[]
 }
 
-export type RoleSelectorResponseData = ApiResponseData<RoleSelectorData[]>
+export type DeptSelectorResponseData = ApiResponseData<DeptVO[]>

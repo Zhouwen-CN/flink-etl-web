@@ -122,6 +122,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     path: "/tool",
     redirect: "/tool/admin",
     component: Layouts,
+    name: "tool",
     meta: {
       title: "系统工具",
       svgIcon: "system-tools",
@@ -177,6 +178,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     path: "/etl",
     component: Layouts,
     redirect: "/etl/cluster",
+    name: "etl",
     meta: {
       title: "ETL 管理",
       svgIcon: "job-manager",
@@ -244,6 +246,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     path: "/log",
     component: Layouts,
     redirect: "/log/login",
+    name: "log",
     meta: {
       title: "日志管理",
       svgIcon: "log-manager",

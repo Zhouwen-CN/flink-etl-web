@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 import type { FormRules } from "element-plus"
-import type { CreateOrUpdateTableRequestData, RoleSelectorData, TableData } from "./apis/type"
+import type { CreateOrUpdateTableRequestData, DeptVO, TableData } from "./apis/type"
+import type { DictionaryData } from "@/common/apis/dict/type"
 import { usePagination } from "@@/composables/usePagination"
 import { CirclePlus, Delete, Download, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
 import { getDictionaryDataApi } from "@/common/apis/dict"
 import useDictionary from "@/common/composables/useDictionary"
-import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getRoleIdsDataApi, getRoleSelectorDataApi, getTableDataApi, resetPasswordApi, revokeUserApi, updateTableDataApi } from "./apis/index"
+import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getDeptSelectorDataApi, getRoleIdsDataApi, getRoleSelectorDataApi, getTableDataApi, resetPasswordApi, revokeUserApi, updateTableDataApi } from "./apis/index"
 
 const loading = ref<boolean>(false)
 
@@ -20,7 +21,8 @@ const DEFAULT_FORM_DATA: CreateOrUpdateTableRequestData = {
   password: undefined,
   gender: 0,
   status: false,
-  roleIds: []
+  roleIds: [],
+  deptId: undefined
 }
 
 const dialogVisible = ref<boolean>(false)
@@ -32,7 +34,9 @@ const formData = ref<CreateOrUpdateTableRequestData>(cloneDeep(DEFAULT_FORM_DATA
 const formRules: FormRules<CreateOrUpdateTableRequestData> = {
   nickname: [{ required: true, trigger: "blur", message: "请输入昵称" }],
   username: [{ required: true, trigger: "blur", message: "请输入用户名" }],
-  password: [{ required: true, trigger: "blur", message: "请输入密码" }]
+  gender: [{ required: true, trigger: "change", message: "请选择性别" }],
+  password: [{ required: true, trigger: "blur", message: "请输入密码" }],
+  deptId: [{ required: true, trigger: "change", message: "请选择部门" }]
 }
 
 function handleCreateOrUpdate() {
@@ -174,12 +178,33 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
 
 const { dictData, dictMap, run } = useDictionary(getDictionaryDataApi)
 
-const roleSelectorData = ref<RoleSelectorData[]>([])
+// 部门选择器：树形结构，用于下拉选择及 id -> name 映射
+const deptTreeData = ref<DeptVO[]>([])
+const deptDictMap = ref<Map<number, string>>(new Map<number, string>())
+function getDeptSelectorData() {
+  getDeptSelectorDataApi().then(({ data }) => {
+    deptTreeData.value = data
+    const map = new Map<number, string>()
+    const walk = (list: DeptVO[]) => {
+      list.forEach((item) => {
+        map.set(item.id, item.name)
+        if (item.children?.length) {
+          walk(item.children)
+        }
+      })
+    }
+    walk(data)
+    deptDictMap.value = map
+  })
+}
+
+const roleSelectorData = ref<DictionaryData[]>([])
 onMounted(() => {
   getRoleSelectorDataApi().then(({ data }) => {
     roleSelectorData.value = data
   })
   run("gender")
+  getDeptSelectorData()
 })
 </script>
 
@@ -227,6 +252,11 @@ onMounted(() => {
           <el-table-column prop="gender" label="性别" align="center">
             <template #default="scope">
               {{ dictMap.get(scope.row.gender) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="deptId" label="部门" align="center">
+            <template #default="scope">
+              {{ deptDictMap.get(scope.row.deptId) || '-' }}
             </template>
           </el-table-column>
           <el-table-column prop="status" label="状态" align="center">
@@ -292,6 +322,20 @@ onMounted(() => {
           <el-select v-model="formData.gender" placeholder="请选择">
             <el-option v-for="item in dictData" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
+        </el-form-item>
+        <el-form-item prop="deptId" label="部门">
+          <el-tree-select
+            v-model="formData.deptId"
+            :data="deptTreeData"
+            node-key="id"
+            default-expand-all
+            check-strictly
+            placeholder="请选择"
+            :props="{
+              label: 'name',
+              children: 'children',
+            }"
+          />
         </el-form-item>
         <el-form-item prop="status" label="状态">
           <el-switch

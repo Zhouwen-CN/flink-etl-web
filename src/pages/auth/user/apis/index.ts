@@ -1,4 +1,5 @@
 import type * as User from "./type"
+import type { DictionaryResponseData } from "@/common/apis/dict/type"
 import { request } from "@/http/axios"
 
 /** 增 */
@@ -53,9 +54,17 @@ export function getRoleIdsDataApi(userId: number) {
   })
 }
 
+/** 查部门选择器（树形） */
+export function getDeptSelectorDataApi() {
+  return request<User.DeptSelectorResponseData>({
+    url: "user/dept/selector",
+    method: "get"
+  })
+}
+
 /** 查角色选择器  */
 export function getRoleSelectorDataApi() {
-  return request<User.RoleSelectorResponseData>({
+  return request<DictionaryResponseData>({
     url: "user/role/selector",
     method: "get"
   })

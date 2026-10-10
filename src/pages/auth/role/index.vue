@@ -5,6 +5,8 @@ import type { CreateOrUpdateTableRequestData, PermissionSelectorData, TableData 
 import { usePagination } from "@@/composables/usePagination"
 import { CirclePlus, Delete, Download, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
+import { getDictionaryDataApi } from "@/common/apis/dict"
+import useDictionary from "@/common/composables/useDictionary"
 import { dynamicRoutes } from "@/router/index"
 import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getPermissionIdsApi, getPermissionSelectorApi, getTableDataApi, updateTableDataApi } from "./apis/index"
 
@@ -17,6 +19,7 @@ const DEFAULT_FORM_DATA: CreateOrUpdateTableRequestData = {
   id: undefined,
   name: undefined,
   code: undefined,
+  dataScope: 2,
   permissionIds: []
 }
 
@@ -28,7 +31,8 @@ const formData = ref<CreateOrUpdateTableRequestData>(cloneDeep(DEFAULT_FORM_DATA
 
 const formRules: FormRules<CreateOrUpdateTableRequestData> = {
   name: [{ required: true, trigger: "blur", message: "请输入角色名" }],
-  code: [{ required: true, trigger: "blur", message: "请输入角色编码" }]
+  code: [{ required: true, trigger: "blur", message: "请输入角色编码" }],
+  dataScope: [{ required: true, trigger: "change", message: "请选择数据范围" }]
 }
 
 function handleCreateOrUpdate() {
@@ -144,6 +148,9 @@ function resetSearch() {
 // 监听分页参数的变化
 watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
 
+// 数据范围下拉（字典 data_scope）
+const { dictData: dataScopeSelectorData, dictMap: dataScopeSelectorMap, run: getDataScopeSelectorData } = useDictionary(getDictionaryDataApi)
+
 // 树型控件ref
 const treeRef = ref<TreeInstance>()
 // 树节点数据
@@ -197,6 +204,7 @@ onMounted(() => {
   getPermissionSelectorApi().then(({ data }) => {
     treeNodes.value = makeTree(dynamicRoutes, data)
   })
+  getDataScopeSelectorData("data_scope")
 })
 </script>
 
@@ -241,6 +249,11 @@ onMounted(() => {
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column prop="name" label="角色名" align="center" />
           <el-table-column prop="code" label="角色编码" align="center" />
+          <el-table-column label="数据范围" align="center">
+            <template #default="scope">
+              {{ dataScopeSelectorMap.get(scope.row.dataScope) || '-' }}
+            </template>
+          </el-table-column>
           <el-table-column prop="updateTime" label="更新时间" align="center" />
           <el-table-column fixed="right" label="操作" width="150" align="center">
             <template #default="scope">
@@ -280,6 +293,11 @@ onMounted(() => {
         </el-form-item>
         <el-form-item prop="code" label="角色编码">
           <el-input v-model="formData.code" placeholder="请输入" />
+        </el-form-item>
+        <el-form-item prop="dataScope" label="数据范围">
+          <el-select v-model="formData.dataScope" placeholder="请选择" style="width: 100%">
+            <el-option v-for="item in dataScopeSelectorData" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item prop="permissionIds" label="权限" max-width="600px">
           <el-tree

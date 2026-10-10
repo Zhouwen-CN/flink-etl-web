@@ -2,6 +2,7 @@ export interface CreateOrUpdateTableRequestData {
   id?: number
   name?: string
   code?: string
+  dataScope: number
   permissionIds?: number[]
 }
 
@@ -22,6 +23,7 @@ export interface TableData {
   id: number
   name: string
   code: string
+  dataScope: number
   updateTime: string
 }
 

@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type { FormRules } from "element-plus"
-import type { CreateOrUpdateTableRequestData, TableData } from "./apis/type"
+import type { CreateOrUpdateTableRequestData, DeptVO, TableData } from "./apis/type"
 import { usePagination } from "@@/composables/usePagination"
 import { CirclePlus, Download, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
-import { createTableDataApi, deleteTableDataApi, getTableDataApi, updateTableDataApi } from "./apis/index"
+import { createTableDataApi, deleteTableDataApi, getDeptSelectorDataApi, getTableDataApi, updateTableDataApi } from "./apis/index"
 
 const router = useRouter()
 
@@ -16,7 +16,8 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 const DEFAULT_FORM_DATA: CreateOrUpdateTableRequestData = {
   id: undefined,
   name: undefined,
-  description: undefined
+  description: undefined,
+  deptId: undefined
 }
 
 const dialogVisible = ref<boolean>(false)
@@ -26,7 +27,8 @@ const formRef = useTemplateRef("formRef")
 const formData = ref<CreateOrUpdateTableRequestData>(cloneDeep(DEFAULT_FORM_DATA))
 
 const formRules: FormRules<CreateOrUpdateTableRequestData> = {
-  name: [{ required: true, trigger: "blur", message: "请输入项目名称" }]
+  name: [{ required: true, trigger: "blur", message: "请输入项目名称" }],
+  deptId: [{ required: true, trigger: "change", message: "请选择部门" }]
 }
 
 function handleCreateOrUpdate() {
@@ -121,6 +123,30 @@ function handleToJob(row: TableData) {
 
 // 监听分页参数的变化
 watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
+
+// 部门选择器：树形结构，用于下拉选择及 id -> name 映射
+const deptTreeData = ref<DeptVO[]>([])
+const deptDictMap = ref<Map<number, string>>(new Map<number, string>())
+function getDeptSelectorData() {
+  getDeptSelectorDataApi().then(({ data }) => {
+    deptTreeData.value = data
+    const map = new Map<number, string>()
+    const walk = (list: DeptVO[]) => {
+      list.forEach((item) => {
+        map.set(item.id, item.name)
+        if (item.children?.length) {
+          walk(item.children)
+        }
+      })
+    }
+    walk(data)
+    deptDictMap.value = map
+  })
+}
+
+onMounted(() => {
+  getDeptSelectorData()
+})
 </script>
 
 <template>
@@ -170,6 +196,11 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
               {{ scope.row.description || "-" }}
             </template>
           </el-table-column>
+          <el-table-column prop="deptId" label="所属部门" align="center">
+            <template #default="scope">
+              {{ deptDictMap.get(scope.row.deptId) || '-' }}
+            </template>
+          </el-table-column>
           <el-table-column prop="createUser" label="创建人" align="center" />
           <el-table-column prop="updateTime" label="更新时间" align="center" />
           <el-table-column fixed="right" label="操作" width="250" align="center">
@@ -207,6 +238,20 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" label-position="right">
         <el-form-item prop="name" label="项目名称">
           <el-input v-model="formData.name" placeholder="请输入" />
+        </el-form-item>
+        <el-form-item prop="deptId" label="所属部门">
+          <el-tree-select
+            v-model="formData.deptId"
+            :data="deptTreeData"
+            node-key="id"
+            default-expand-all
+            check-strictly
+            placeholder="请选择"
+            :props="{
+              label: 'name',
+              children: 'children',
+            }"
+          />
         </el-form-item>
         <el-form-item prop="description" label="项目描述">
           <el-input v-model="formData.description" placeholder="请输入" />

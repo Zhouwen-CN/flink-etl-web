@@ -35,3 +35,11 @@ export function getTableDataApi(params: User.TableRequestData) {
     params
   })
 }
+
+/** 查部门选择器（树形） */
+export function getDeptSelectorDataApi() {
+  return request<User.DeptSelectorResponseData>({
+    url: "project/dept/selector",
+    method: "get"
+  })
+}

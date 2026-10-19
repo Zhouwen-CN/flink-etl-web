@@ -25,7 +25,6 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 const DEFAULT_FORM_DATA: CreateOrUpdateTableRequestData = {
   id: undefined,
   name: undefined,
-  description: undefined,
   type: 1,
   projectId: undefined,
   clusterId: undefined,
@@ -294,11 +293,6 @@ onActivated(() => {
               {{ scope.row.checkpointInterval ? `${scope.row.checkpointInterval}ms` : "-" }}
             </template>
           </el-table-column>
-          <el-table-column prop="description" label="任务描述" align="center" min-width="70">
-            <template #default="scope">
-              {{ scope.row.description || "-" }}
-            </template>
-          </el-table-column>
           <el-table-column prop="updateTime" label="更新时间" align="center" />
           <el-table-column fixed="right" label="操作" width="250" align="center">
             <template #default="scope">
@@ -363,9 +357,6 @@ onActivated(() => {
             <el-option v-for="item in jarSelectorData" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
-        <el-form-item prop="description" label="任务描述">
-          <el-input v-model="formData.description" placeholder="请输入" />
-        </el-form-item>
         <el-form-item prop="parallelism" label="并行度">
           <el-input-number v-model="formData.parallelism" placeholder="请输入" />
         </el-form-item>
@@ -373,7 +364,7 @@ onActivated(() => {
           <el-input-number v-model="formData.checkpointInterval" placeholder="请输入" />
         </el-form-item>
         <el-form-item prop="config" label="任务配置">
-          <Editor v-model="formData.config" class="editor" :height="formData.type === 1 ? 280 : 230" />
+          <Editor v-model="formData.config" class="editor" :height="formData.type === 1 ? 330 : 280" />
         </el-form-item>
       </el-form>
       <template #footer>

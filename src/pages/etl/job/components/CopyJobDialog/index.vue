@@ -13,7 +13,6 @@ const loading = ref<boolean>(false)
 const DEFAULT_FORM_DATA: CreateOrUpdateTableRequestData = {
   id: undefined,
   name: undefined,
-  description: undefined,
   type: 1,
   projectId: undefined,
   clusterId: undefined,

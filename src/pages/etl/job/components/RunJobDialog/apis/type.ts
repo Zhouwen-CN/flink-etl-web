@@ -3,7 +3,6 @@ export interface RunJobFormData {
   savepointPath?: string
   status?: boolean
   type?: number
-  jobInstanceId?: string
 }
 
 export interface RunJobResponseData {
@@ -12,5 +11,5 @@ export interface RunJobResponseData {
 }
 
 export interface CheckpointSelectorRequestData {
-  instanceId: string
+  jobId: number
 }

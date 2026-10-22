@@ -4,7 +4,7 @@ import type { RunJobFormData } from "./apis/type"
 import { cloneDeep } from "lodash-es"
 
 import useDictionary from "@/common/composables/useDictionary"
-import { getCheckpointSelectorDataApi, getJobInstanceSelectorDataAPi, getRunJobDataApi } from "./apis"
+import { getCheckpointSelectorDataApi, getRunJobDataApi } from "./apis"
 
 const loading = ref<boolean>(false)
 
@@ -13,13 +13,11 @@ const DEFAULT_FORM_DATA: RunJobFormData = {
   id: undefined,
   type: undefined,
   status: undefined,
-  savepointPath: undefined,
-  jobInstanceId: undefined
+  savepointPath: undefined
 }
 
 const formRef = useTemplateRef("formRef")
 const formRules: FormRules<RunJobFormData> = {
-  jobInstanceId: [{ required: true, trigger: "blur", message: "请选择任务实例ID" }],
   savepointPath: [{ required: true, trigger: "blur", message: "请选择检查点路径" }]
 }
 
@@ -56,16 +54,13 @@ function showDialog(id: number, type: number) {
   formData.value.id = id
   formData.value.type = type
   formData.value.status = type === 2
-  getJobInstanceSelectorData(formData.value.id)
+  if (type === 2) {
+    getCheckpointSelectorData({
+      jobId: id
+    })
+  }
 }
 
-function handlerSelectorChange(value: any) {
-  getCheckpointSelectorData({
-    instanceId: value
-  })
-}
-
-const { dictData: jobInstanceSelectorData, run: getJobInstanceSelectorData } = useDictionary(getJobInstanceSelectorDataAPi)
 const { dictData: checkpointSelectorData, run: getCheckpointSelectorData } = useDictionary(getCheckpointSelectorDataApi)
 
 defineExpose({
@@ -93,11 +88,7 @@ defineExpose({
             :disabled="formData.type === 1"
           />
         </el-form-item>
-        <el-form-item prop="jobInstanceSelector" label="任务实例" v-if="formData.status">
-          <el-select v-model="formData.jobInstanceId" placeholder="请选择" @change="handlerSelectorChange">
-            <el-option v-for="item in jobInstanceSelectorData" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
+
         <el-form-item prop="savepointPath" label="保存点路径" v-if="formData.status">
           <el-select v-model="formData.savepointPath" placeholder="请选择">
             <el-option v-for="item in checkpointSelectorData" :key="item.value" :label="item.label" :value="item.value" />

@@ -1,9 +1,8 @@
 <script lang="ts" setup>
 import type { FormRules } from "element-plus"
-import type { RunJobFormData } from "./apis/type"
+import type { CheckpointSelectorData, RunJobFormData } from "./apis/type"
 import { cloneDeep } from "lodash-es"
 
-import useDictionary from "@/common/composables/useDictionary"
 import { getCheckpointSelectorDataApi, getRunJobDataApi } from "./apis"
 
 const loading = ref<boolean>(false)
@@ -55,13 +54,18 @@ function showDialog(id: number, type: number) {
   formData.value.type = type
   formData.value.status = type === 2
   if (type === 2) {
-    getCheckpointSelectorData({
-      jobId: id
+    getCheckpointSelectorDataApi({ jobId: id }).then((res) => {
+      checkpointSelectorData.value = res.data || []
     })
   }
 }
 
-const { dictData: checkpointSelectorData, run: getCheckpointSelectorData } = useDictionary(getCheckpointSelectorDataApi)
+const checkpointSelectorData = ref<CheckpointSelectorData[]>([])
+
+/** 当前选中的检查点 */
+const selectedCheckpoint = computed(() => {
+  return checkpointSelectorData.value.find(item => item.path === formData.value.savepointPath)
+})
 
 defineExpose({
   showDialog
@@ -91,7 +95,28 @@ defineExpose({
 
         <el-form-item prop="savepointPath" label="保存点路径" v-if="formData.status">
           <el-select v-model="formData.savepointPath" placeholder="请选择">
-            <el-option v-for="item in checkpointSelectorData" :key="item.value" :label="item.label" :value="item.value" />
+            <el-option
+              v-for="item in checkpointSelectorData"
+              :key="item.chkId"
+              :label="`${item.type ? 'SP' : 'CP'} - ${item.triggerTime}`"
+              :value="item.path"
+            >
+              <el-tag :type="item.type ? 'success' : 'primary'" size="small" effect="plain" disable-transitions>
+                {{ item.type ? "SP" : "CP" }}
+              </el-tag>
+              <span style="margin-left: 8px;">
+                {{ item.triggerTime }}
+              </span>
+            </el-option>
+            <!-- 自定义选中后输入框显示内容，与下拉选项保持一致 -->
+            <template #label>
+              <el-tag v-if="selectedCheckpoint" :type="selectedCheckpoint.type ? 'success' : 'primary'" size="small" effect="plain" disable-transitions>
+                {{ selectedCheckpoint.type ? "SP" : "CP" }}
+              </el-tag>
+              <span v-if="selectedCheckpoint" style="margin-left: 8px;">
+                {{ selectedCheckpoint.triggerTime }}
+              </span>
+            </template>
           </el-select>
         </el-form-item>
       </el-form>

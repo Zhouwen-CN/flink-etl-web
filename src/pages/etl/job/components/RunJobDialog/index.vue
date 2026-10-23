@@ -12,7 +12,8 @@ const DEFAULT_FORM_DATA: RunJobFormData = {
   id: undefined,
   type: undefined,
   status: undefined,
-  savepointPath: undefined
+  savepointPath: undefined,
+  allowNonRestoredState: false
 }
 
 const formRef = useTemplateRef("formRef")
@@ -33,7 +34,8 @@ function handleRunJob() {
     loading.value = true
     getRunJobDataApi({
       id: formData.value.id,
-      savepointPath: formData.value.savepointPath
+      savepointPath: formData.value.savepointPath,
+      allowNonRestoredState: formData.value.allowNonRestoredState
     }).then(() => {
       loading.value = false
       dialogVisible.value = false
@@ -118,6 +120,15 @@ defineExpose({
               </span>
             </template>
           </el-select>
+        </el-form-item>
+
+        <el-form-item label="忽略恢复失败" v-if="formData.status">
+          <el-switch
+            v-model="formData.allowNonRestoredState"
+            inline-prompt
+            active-icon="Check"
+            inactive-icon="Close"
+          />
         </el-form-item>
       </el-form>
       <template #footer>

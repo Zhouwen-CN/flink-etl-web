@@ -3,11 +3,15 @@ export interface RunJobFormData {
   savepointPath?: string
   status?: boolean
   type?: number
+  /** 忽略恢复失败，继续执行 */
+  allowNonRestoredState: boolean
 }
 
 export interface RunJobResponseData {
   id?: number
   savepointPath?: string
+  /** 忽略恢复失败，继续执行 */
+  allowNonRestoredState?: boolean
 }
 
 export interface CheckpointSelectorRequestData {

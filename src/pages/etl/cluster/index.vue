@@ -177,7 +177,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
           <el-table-column prop="name" label="集群名称" align="center" />
           <el-table-column prop="jobManagerUrl" label="集群地址" align="center">
             <template #default="scope">
-              <el-link :href="scope.row.jobManagerUrl" :underline="false" type="primary" target="_blank">
+              <el-link :href="scope.row.jobManagerUrl" type="primary" target="_blank">
                 {{ scope.row.jobManagerUrl }}
               </el-link>
             </template>

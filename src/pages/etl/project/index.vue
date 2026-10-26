@@ -186,7 +186,7 @@ onMounted(() => {
         <el-table :data="tableData" show-overflow-tooltip>
           <el-table-column prop="name" label="项目名称" align="center">
             <template #default="scope">
-              <el-link type="primary" :underline="false" @click="handleToJob(scope.row)">
+              <el-link type="primary" @click="handleToJob(scope.row)">
                 {{ scope.row.name }}
               </el-link>
             </template>

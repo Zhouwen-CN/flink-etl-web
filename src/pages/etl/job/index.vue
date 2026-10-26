@@ -8,6 +8,7 @@ import { cloneDeep } from "lodash-es"
 import { getDictionaryDataApi } from "@/common/apis/dict"
 import useDictionary from "@/common/composables/useDictionary"
 import { createTableDataApi, deleteBatchTableDataApi, deleteTableDataApi, getClusterSelectorDataApi, getJarSelectorDataApi, getProjectSelectorDataApi, getTableDataApi, updateTableDataApi } from "./apis/index"
+import ConfigVersionDrawer from "./components/ConfigVersionDrawer/index.vue"
 import CopyJobDialog from "./components/CopyJobDialog/index.vue"
 import RunJobDialog from "./components/RunJobDialog/index.vue"
 
@@ -173,6 +174,13 @@ function handleCopy(row: TableData) {
 }
 // #endregion
 
+// #region 配置版本
+const configVersionDrawerRef = ref<InstanceType<typeof ConfigVersionDrawer>>()
+function handleVersion(row: TableData) {
+  configVersionDrawerRef.value?.showDrawer(row.id)
+}
+// #endregion
+
 // 跳转到任务实例页，并选中对应任务
 function handleToInstance(row: TableData) {
   router.push({
@@ -262,7 +270,7 @@ onActivated(() => {
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column prop="name" label="任务名称" align="center" min-width="180">
             <template #default="scope">
-              <el-link type="primary" :underline="false" @click="handleToInstance(scope.row)">
+              <el-link type="primary" @click="handleToInstance(scope.row)">
                 {{ scope.row.name }}
               </el-link>
             </template>
@@ -294,13 +302,16 @@ onActivated(() => {
             </template>
           </el-table-column>
           <el-table-column prop="updateTime" label="更新时间" align="center" />
-          <el-table-column fixed="right" label="操作" width="250" align="center">
+          <el-table-column fixed="right" label="操作" width="320" align="center">
             <template #default="scope">
               <el-button type="success" text bg size="small" @click="handleRun(scope.row)">
                 运行
               </el-button>
               <el-button type="primary" text bg size="small" @click="handleUpdate(scope.row)">
                 修改
+              </el-button>
+              <el-button type="warning" text bg size="small" @click="handleVersion(scope.row)">
+                版本
               </el-button>
               <el-button type="info" text bg size="small" @click="handleCopy(scope.row)">
                 复制
@@ -383,6 +394,11 @@ onActivated(() => {
 
     <CopyJobDialog
       ref="copyJobDialogRef"
+      @success="getTableData"
+    />
+
+    <ConfigVersionDrawer
+      ref="configVersionDrawerRef"
       @success="getTableData"
     />
   </div>

@@ -237,7 +237,7 @@ onActivated(() => {
         <el-table :data="tableData" show-overflow-tooltip>
           <el-table-column prop="id" label="任务实例ID" align="center">
             <template #default="scope">
-              <el-link type="primary" :underline="false" @click="handleToFlink(scope.row)">
+              <el-link type="primary" @click="handleToFlink(scope.row)">
                 {{ scope.row.id }}
               </el-link>
             </template>

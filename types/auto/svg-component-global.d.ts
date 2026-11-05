@@ -9,18 +9,18 @@ declare module 'vue' {
   export interface GlobalComponents {
     SvgIcon: import("vue").DefineComponent<{
         name: {
-            type: import("vue").PropType<"code" | "ctrl-k" | "dashboard" | "fullscreen-exit" | "fullscreen" | "job-manager" | "keyboard-down" | "keyboard-enter" | "keyboard-esc" | "keyboard-up" | "log-manager" | "models" | "robot" | "search" | "system-tools">;
+            type: import("vue").PropType<"ctrl-k" | "dashboard" | "fullscreen-exit" | "fullscreen" | "job-manager" | "keyboard-down" | "keyboard-enter" | "keyboard-esc" | "keyboard-up" | "log-manager" | "models" | "robot" | "search" | "system-tools">;
             default: string;
             required: true;
         };
     }, {}, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").VNodeProps & import("vue").AllowedComponentProps & import("vue").ComponentCustomProps, Readonly<import("vue").ExtractPropTypes<{
         name: {
-            type: import("vue").PropType<"code" | "ctrl-k" | "dashboard" | "fullscreen-exit" | "fullscreen" | "job-manager" | "keyboard-down" | "keyboard-enter" | "keyboard-esc" | "keyboard-up" | "log-manager" | "models" | "robot" | "search" | "system-tools">;
+            type: import("vue").PropType<"ctrl-k" | "dashboard" | "fullscreen-exit" | "fullscreen" | "job-manager" | "keyboard-down" | "keyboard-enter" | "keyboard-esc" | "keyboard-up" | "log-manager" | "models" | "robot" | "search" | "system-tools">;
             default: string;
             required: true;
         };
     }>>, {
-        name: "code" | "ctrl-k" | "dashboard" | "fullscreen-exit" | "fullscreen" | "job-manager" | "keyboard-down" | "keyboard-enter" | "keyboard-esc" | "keyboard-up" | "log-manager" | "models" | "robot" | "search" | "system-tools";
+        name: "ctrl-k" | "dashboard" | "fullscreen-exit" | "fullscreen" | "job-manager" | "keyboard-down" | "keyboard-enter" | "keyboard-esc" | "keyboard-up" | "log-manager" | "models" | "robot" | "search" | "system-tools";
     }>;
   }
 }

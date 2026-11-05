@@ -7,20 +7,20 @@
 declare module '~virtual/svg-component' {
   const SvgIcon: import("vue").DefineComponent<{
       name: {
-          type: import("vue").PropType<"code" | "ctrl-k" | "dashboard" | "fullscreen-exit" | "fullscreen" | "job-manager" | "keyboard-down" | "keyboard-enter" | "keyboard-esc" | "keyboard-up" | "log-manager" | "models" | "robot" | "search" | "system-tools">;
+          type: import("vue").PropType<"ctrl-k" | "dashboard" | "fullscreen-exit" | "fullscreen" | "job-manager" | "keyboard-down" | "keyboard-enter" | "keyboard-esc" | "keyboard-up" | "log-manager" | "models" | "robot" | "search" | "system-tools">;
           default: string;
           required: true;
       };
   }, {}, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").VNodeProps & import("vue").AllowedComponentProps & import("vue").ComponentCustomProps, Readonly<import("vue").ExtractPropTypes<{
       name: {
-          type: import("vue").PropType<"code" | "ctrl-k" | "dashboard" | "fullscreen-exit" | "fullscreen" | "job-manager" | "keyboard-down" | "keyboard-enter" | "keyboard-esc" | "keyboard-up" | "log-manager" | "models" | "robot" | "search" | "system-tools">;
+          type: import("vue").PropType<"ctrl-k" | "dashboard" | "fullscreen-exit" | "fullscreen" | "job-manager" | "keyboard-down" | "keyboard-enter" | "keyboard-esc" | "keyboard-up" | "log-manager" | "models" | "robot" | "search" | "system-tools">;
           default: string;
           required: true;
       };
   }>>, {
-      name: "code" | "ctrl-k" | "dashboard" | "fullscreen-exit" | "fullscreen" | "job-manager" | "keyboard-down" | "keyboard-enter" | "keyboard-esc" | "keyboard-up" | "log-manager" | "models" | "robot" | "search" | "system-tools";
+      name: "ctrl-k" | "dashboard" | "fullscreen-exit" | "fullscreen" | "job-manager" | "keyboard-down" | "keyboard-enter" | "keyboard-esc" | "keyboard-up" | "log-manager" | "models" | "robot" | "search" | "system-tools";
   }>;
-  export const svgNames: ["code", "ctrl-k", "dashboard", "fullscreen-exit", "fullscreen", "job-manager", "keyboard-down", "keyboard-enter", "keyboard-esc", "keyboard-up", "log-manager", "models", "robot", "search", "system-tools"];
-  export type SvgName = "code" | "ctrl-k" | "dashboard" | "fullscreen-exit" | "fullscreen" | "job-manager" | "keyboard-down" | "keyboard-enter" | "keyboard-esc" | "keyboard-up" | "log-manager" | "models" | "robot" | "search" | "system-tools";
+  export const svgNames: ["ctrl-k", "dashboard", "fullscreen-exit", "fullscreen", "job-manager", "keyboard-down", "keyboard-enter", "keyboard-esc", "keyboard-up", "log-manager", "models", "robot", "search", "system-tools"];
+  export type SvgName = "ctrl-k" | "dashboard" | "fullscreen-exit" | "fullscreen" | "job-manager" | "keyboard-down" | "keyboard-enter" | "keyboard-esc" | "keyboard-up" | "log-manager" | "models" | "robot" | "search" | "system-tools";
   export default SvgIcon;
 }

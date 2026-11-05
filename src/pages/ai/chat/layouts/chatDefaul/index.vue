@@ -7,6 +7,7 @@ import { nextTick, ref, watch } from "vue"
 import FilesSelect from "../../components/FilesSelect/index.vue"
 import ModelSelect from "../../components/ModelSelect/index.vue"
 import WelecomeText from "../../components/WelecomeText/index.vue"
+import { usePasteFiles } from "../../hooks/usePasteFiles"
 import { useFilesStore } from "../../stores/files"
 import { useSessionStore } from "../../stores/session"
 import { useUserStore } from "../../stores/user"
@@ -14,6 +15,9 @@ import { useUserStore } from "../../stores/user"
 const userStore = useUserStore()
 const sessionStore = useSessionStore()
 const filesStore = useFilesStore()
+
+// 粘贴截图/图片自动加入附件
+const { handlePaste } = usePasteFiles()
 
 const senderValue = ref("")
 const senderRef = ref()
@@ -63,6 +67,7 @@ watch(
       clearable
       allow-speech
       @submit="handleSend"
+      @paste="handlePaste"
     >
       <template #header>
         <div class="sender-header">

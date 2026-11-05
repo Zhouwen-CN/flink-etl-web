@@ -19,6 +19,7 @@ import { useRoute } from "vue-router"
 import { send } from "../../api"
 import FilesSelect from "../../components/FilesSelect/index.vue"
 import ModelSelect from "../../components/ModelSelect/index.vue"
+import { usePasteFiles } from "../../hooks/usePasteFiles"
 import { useChatStore } from "../../stores/chat"
 import { useFilesStore } from "../../stores/files"
 import { useModelStore } from "../../stores/model"
@@ -38,6 +39,9 @@ const chatStore = useChatStore()
 const modelStore = useModelStore()
 const filesStore = useFilesStore()
 const userStore = useUserStore()
+
+// 粘贴截图/图片自动加入附件
+const { handlePaste } = usePasteFiles()
 
 // 代码块主题跟随当前项目主题（黑暗/深蓝 → dark，默认 → light）
 // XMarkdown 通过 default-theme-mode 切换 body.dark 并同步 shiki 高亮主题
@@ -286,6 +290,7 @@ watch(
           maxRows: 6,
           minRows: 2,
         }" variant="updown" clearable allow-speech :loading="isLoading" @submit="startSSE" @cancel="cancelSSE"
+        @paste="handlePaste"
       >
         <template #header>
           <div class="sender-header">

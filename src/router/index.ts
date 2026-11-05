@@ -236,8 +236,29 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         component: () => import("@/pages/etl/jar/index.vue"),
         name: "jar",
         meta: {
-          title: "Jar包管理",
+          title: "Jar 管理",
           roles: ["admin"]
+        }
+      }
+    ]
+  },
+  {
+    path: "/ai",
+    component: Layouts,
+    redirect: "/ai/chat",
+    name: "ai",
+    meta: {
+      title: "AI 管理",
+      svgIcon: "robot",
+      alwaysShow: true
+    },
+    children: [
+      {
+        path: "chat",
+        component: () => import("@/pages/ai/chat/index.vue"),
+        name: "AIChat",
+        meta: {
+          title: "AI 对话"
         }
       }
     ]

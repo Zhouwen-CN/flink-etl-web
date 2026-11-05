@@ -6,10 +6,11 @@
   - 原 UnoCSS 原子类已重写为 scoped SCSS。
 -->
 <script setup lang="ts">
-import type { ConversationItem } from "vue-element-plus-x/types/Conversations"
+import type { ConversationItem, ConversationMenuCommand } from "vue-element-plus-x/types/Conversations"
 import type { ChatSessionVo } from "../../api/types"
 import SvgCtrlK from "@@/assets/icons/ctrl-k.svg?component"
 import { computed, nextTick, onMounted, ref, watch } from "vue"
+import { Conversations } from "vue-element-plus-x"
 import { useRoute, useRouter } from "vue-router"
 import { get_session } from "../../api"
 import { useSessionStore } from "../../stores/session"
@@ -72,17 +73,13 @@ async function handleLoadMore() {
 }
 
 // 右键菜单
-function handleMenuCommand(command: string, item: ConversationItem<ChatSessionVo>) {
+function handleMenuCommand(command: ConversationMenuCommand, item: ConversationItem<ChatSessionVo>) {
   switch (command) {
     case "delete":
-      ElMessageBox.confirm("删除后，聊天记录将不可恢复。", "确定删除对话？", {
+      ElMessageBox.confirm(`正在删除记录：${item.sessionTitle}，确认删除？`, "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
-        type: "warning",
-        confirmButtonClass: "el-button--danger",
-        cancelButtonClass: "el-button--info",
-        roundButton: true,
-        autofocus: false
+        type: "warning"
       })
         .then(() => {
           // 删除会话
@@ -104,10 +101,9 @@ function handleMenuCommand(command: string, item: ConversationItem<ChatSessionVo
         cancelButtonText: "取消",
         inputErrorMessage: "请输入对话名称",
         confirmButtonClass: "el-button--primary",
-        cancelButtonClass: "el-button--info",
-        roundButton: true,
+        roundButton: false,
         inputValue: item.sessionTitle, // 设置默认值
-        autofocus: false,
+        autofocus: true,
         inputValidator: (value) => {
           if (!value) {
             return false
@@ -196,9 +192,8 @@ function handleMenuCommand(command: string, item: ConversationItem<ChatSessionVo
                 padding: '8px 12px',
               }"
               :items-active-style="{
-                backgroundColor: 'var(--el-bg-color)',
-                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                color: 'var(--el-text-color-primary)',
+                backgroundColor: 'var(--el-color-primary-light-9)',
+                boxShadow: 'inset 1px 0 0 0 var(--el-color-primary)',
               }"
               :items-hover-style="{
                 backgroundColor: 'var(--el-fill-color-light)',
@@ -391,6 +386,12 @@ function handleMenuCommand(command: string, item: ConversationItem<ChatSessionVo
   // 库内 label 写死 #303133，改为主题文字色，修复暗黑模式下会话标题发灰
   .conversation-label {
     color: var(--el-text-color-primary) !important;
+  }
+
+  // 当前选中会话：标题用主题色加粗，强化与未选中项的区分
+  .conversation-item.active .conversation-label {
+    font-weight: 600;
+    color: var(--el-color-primary) !important;
   }
 
   .conversation-timestamp {

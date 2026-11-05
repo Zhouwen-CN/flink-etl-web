@@ -4,6 +4,7 @@
 <script setup lang="ts">
 import type { FilesCardProps } from "vue-element-plus-x/types/FilesCard"
 import { nextTick, ref, watch } from "vue"
+import { Attachments, Sender } from "vue-element-plus-x"
 import FilesSelect from "../../components/FilesSelect/index.vue"
 import ModelSelect from "../../components/ModelSelect/index.vue"
 import WelecomeText from "../../components/WelecomeText/index.vue"

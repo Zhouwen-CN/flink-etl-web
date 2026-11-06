@@ -40,10 +40,8 @@ const username = computed(() => userStore.userInfo?.username ?? "AI 助手")
   line-height: 32px;
   text-align: center;
 
-  :deep {
-    .typer-container {
-      overflow: initial;
-    }
+  :deep(.typer-container) {
+    overflow: initial;
   }
 }
 </style>

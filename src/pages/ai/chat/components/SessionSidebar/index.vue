@@ -9,7 +9,7 @@
 import type { ConversationItem, ConversationMenuCommand } from "vue-element-plus-x/types/Conversations"
 import type { ChatSessionVo } from "../../api/types"
 import SvgCtrlK from "@@/assets/icons/ctrl-k.svg?component"
-import { computed, nextTick, onMounted, ref, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { Conversations } from "vue-element-plus-x"
 import { useRoute, useRouter } from "vue-router"
 import { get_session } from "../../api"
@@ -36,7 +36,21 @@ onMounted(async () => {
     // 通过 ID 查询详情，设置当前会话 (因为有分页)
     sessionStore.setCurrentSession(currentSessionRes.data)
   }
+  // 注册 Ctrl+K 快捷键（与"新对话"按钮等效）
+  window.addEventListener("keydown", handleKeydown)
 })
+
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", handleKeydown)
+})
+
+// Ctrl / Cmd + K 新建对话
+function handleKeydown(e: KeyboardEvent) {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+    e.preventDefault()
+    handleCreatChat()
+  }
+}
 
 watch(
   () => sessionStore.currentSession,
@@ -402,6 +416,16 @@ function handleMenuCommand(command: ConversationMenuCommand, item: ConversationI
   .conversation-group-title {
     padding-left: 12px !important;
     background-color: var(--el-bg-color) !important;
+  }
+
+  // 库内"三个点"菜单图标 hover 写死 #d3d3d3，改用主题变量适配暗黑模式
+  .conversation-content .conversation-dropdown-more-icon:hover {
+    background-color: var(--el-fill-color-darker) !important;
+  }
+
+  // 库内菜单打开时写死会话项背景 #f0f0f0，改用主题变量（与 hover 样式一致）
+  .conversation-item.menu-opened {
+    background-color: var(--el-fill-color-light) !important;
   }
 }
 </style>

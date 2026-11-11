@@ -148,7 +148,7 @@ function handleRemapping() {
 }
 
 onMounted(() => {
-  getJobTypeSelectorData("job_type")
+  getJobTypeSelectorData("etl_job_type")
   getClusterSelectorData()
   getStatusSelectorData()
   getJarSelectorData()

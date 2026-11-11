@@ -148,7 +148,7 @@ function resetSearch() {
 // 监听分页参数的变化
 watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
 
-// 数据范围下拉（字典 data_scope）
+// 数据范围下拉（字典 sys_data_scope）
 const { dictData: dataScopeSelectorData, dictMap: dataScopeSelectorMap, run: getDataScopeSelectorData } = useDictionary(getDictionaryDataApi)
 
 // 树型控件ref
@@ -204,7 +204,7 @@ onMounted(() => {
   getPermissionSelectorApi().then(({ data }) => {
     treeNodes.value = makeTree(dynamicRoutes, data)
   })
-  getDataScopeSelectorData("data_scope")
+  getDataScopeSelectorData("sys_data_scope")
 })
 </script>
 

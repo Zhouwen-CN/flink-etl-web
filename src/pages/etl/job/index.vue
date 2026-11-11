@@ -200,7 +200,7 @@ const { dictData: projectSelectorData, dictMap: projectSelectorMap, run: getProj
 onMounted(() => {
   getClusterSelectorData()
   getJarSelectorData()
-  getJobTypeSelectorData("job_type")
+  getJobTypeSelectorData("etl_job_type")
 })
 
 // 首次激活负责初始化查询；之后仅在带 projectId 跳转时设置筛选并刷新，不带参数则保持缓存状态不请求

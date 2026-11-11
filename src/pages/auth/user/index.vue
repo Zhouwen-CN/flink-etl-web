@@ -203,7 +203,7 @@ onMounted(() => {
   getRoleSelectorDataApi().then(({ data }) => {
     roleSelectorData.value = data
   })
-  run("gender")
+  run("sys_user_gender")
   getDeptSelectorData()
 })
 </script>

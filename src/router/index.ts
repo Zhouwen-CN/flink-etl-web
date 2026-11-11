@@ -260,6 +260,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: {
           title: "AI 对话"
         }
+      },
+      {
+        path: "model",
+        component: () => import("@/pages/ai/model/index.vue"),
+        name: "AIModel",
+        meta: {
+          title: "模型管理",
+          roles: ["admin", "dev"]
+        }
       }
     ]
   },

@@ -1,53 +1,87 @@
-<!-- AI Chat 页面（迁移自 ruoyi-element-ai pages/chat/index.vue）
-  结构说明：
-  - 会话列表作为页内左侧面板（原项目在应用级 Aside 中），聊天区在右侧。
-  - 用 query 而非路径参数携带 sessionId：tags-view 按 path 去重，路径不变可保证标签栏只有一个"AI 对话"标签。
-  - 原 chatDefaul / chatWithId 两个布局已合并到本文件：Sender 输入区只有一份，
-    按 route.query.sessionId 条件渲染 WelecomeText（无会话）或 BubbleList（有会话），
-    提交时根据有无会话分流：无会话先创建会话再由 watch 触发发送，有会话直接 SSE 发送。
--->
+<!-- AI Chat 页面 -->
 <script setup lang="ts">
 import type { BubbleProps } from "vue-element-plus-x/types/Bubble"
 import type { BubbleListInstance } from "vue-element-plus-x/types/BubbleList"
 import type { FilesCardProps } from "vue-element-plus-x/types/FilesCard"
 import type { ThinkingStatus } from "vue-element-plus-x/types/Thinking"
-import type { SseChunk } from "./api/chat"
+import type { ChatMessage, DoneAttributes, ModelOptionVO } from "./api/types"
 import { useTheme } from "@@/composables/useTheme"
 import { computed, nextTick, ref, watch } from "vue"
 import { Attachments, BubbleList, Sender, Thinking, XMarkdown } from "vue-element-plus-x"
-import { useRoute } from "vue-router"
-import { send } from "./api"
+import { useRoute, useRouter } from "vue-router"
+import { createConversationApi, getConversationMessageListApi, streamChat } from "./api"
 import FilesSelect from "./components/FilesSelect/index.vue"
 import ModelSelect from "./components/ModelSelect/index.vue"
 import SessionSidebar from "./components/SessionSidebar/index.vue"
 import WelecomeText from "./components/WelecomeText/index.vue"
 import { usePasteFiles } from "./hooks/usePasteFiles"
-import { useChatStore } from "./stores/chat"
-import { useFilesStore } from "./stores/files"
-import { useModelStore } from "./stores/model"
-import { useSessionStore } from "./stores/session"
-import { useUserStore } from "./stores/user"
 
 type MessageItem = BubbleProps & {
   key: number
-  role: "ai" | "user" | "system"
+  role: "ai" | "user"
   avatar: string
   thinkingStatus?: ThinkingStatus
   thinlCollapse?: boolean
   reasoning_content?: string
+  inputToken?: number
+  outputToken?: number
+  totalToken?: number
 }
 
+const USER_AVATAR = "https://avatars.githubusercontent.com/u/76239030?v=4"
+const AI_AVATAR = "https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
+
 const route = useRoute()
-const chatStore = useChatStore()
-const modelStore = useModelStore()
-const filesStore = useFilesStore()
-const sessionStore = useSessionStore()
-const userStore = useUserStore()
+const router = useRouter()
 
 const sessionId = computed(() => route.query?.sessionId)
 
+// ============================== 附件（原 files store 下沉到本组件） ==============================
+
+type ChatFileItem = FilesCardProps & {
+  file: File
+}
+
+const filesList = ref<ChatFileItem[]>([])
+
+// 把原生 File 转成附件卡片项，追加到列表（选择文件、粘贴截图都走这里）
+function addFiles(files: File[]) {
+  if (!files.length)
+    return
+  const items = files.map(file =>
+    ({
+      uid: crypto.randomUUID(), // 不写 uid，文件列表展示不出来，elx 1.2.0 bug 待修复
+      name: file.name,
+      fileSize: file.size,
+      file,
+      maxWidth: "200px",
+      showDelIcon: true, // 显示删除图标
+      imgPreview: true, // 显示图片预览
+      imgVariant: "square", // 图片预览的形状
+      url: URL.createObjectURL(file) // 图片预览地址
+    }) as ChatFileItem
+  )
+  filesList.value.push(...items)
+}
+
+// 根据索引删除附件，并回收图片预览地址
+function deleteFileByIndex(index: number) {
+  const item = filesList.value[index]
+  if (item?.url)
+    URL.revokeObjectURL(item.url)
+  filesList.value.splice(index, 1)
+}
+
 // 粘贴截图/图片自动加入附件
-const { handlePaste } = usePasteFiles()
+const { handlePaste } = usePasteFiles(addFiles)
+
+// ============================== 会话列表 / 模型（原 chat store 下沉） ==============================
+
+// 会话侧栏组件引用：创建会话后调用其 refresh() 刷新会话列表
+const sidebarRef = ref<InstanceType<typeof SessionSidebar> | null>(null)
+
+// 当前选中的模型
+const currentModel = ref<ModelOptionVO | null>(null)
 
 // 代码块主题跟随当前项目主题（黑暗/深蓝 → dark，默认 → light）
 // XMarkdown 通过 default-theme-mode 切换 body.dark 并同步 shiki 高亮主题
@@ -56,16 +90,13 @@ const codeThemeMode = computed(() =>
   activeThemeName.value === "dark" || activeThemeName.value === "dark-blue" ? "dark" : "light"
 )
 
-// 用户头像
-const avatar = computed(() => {
-  const userInfo = userStore.userInfo
-  return userInfo?.avatar || "https://avatars.githubusercontent.com/u/76239030?v=4"
-})
-
 const inputValue = ref("")
 const senderRef = ref<InstanceType<typeof Sender> | null>(null)
 const bubbleItems = ref<MessageItem[]>([])
 const bubbleListRef = ref<BubbleListInstance | null>(null)
+
+// 新聊天流程中暂存第一条消息：创建会话 → 跳转 → 会话消息加载完后发送
+const pendingMessage = ref("")
 
 // 欢迎页输入框行数更大，会话页更小
 const autoSize = computed(() =>
@@ -74,129 +105,116 @@ const autoSize = computed(() =>
     : { maxRows: 9, minRows: 3 }
 )
 
-// ⚠️ 原实现：const { stream, loading: isLoading, cancel } = useHookFetch({ request: send, onError: ... })
-// 当前：mock send 返回 AsyncIterable，用手写 loading/abort 替代
 const isLoading = ref(false)
 let abortController: AbortController | null = null
 
-// 记录进入思考中
-let isThinking = false
-
 watch(
   () => route.query?.sessionId,
-  async (_id_) => {
-    // 无会话 id：回到欢迎页，清空消息（等效原 chatWithId 卸载重建）
-    if (!_id_) {
+  async (id) => {
+    // 无会话 id：回到欢迎页，清空消息
+    if (!id) {
       bubbleItems.value = []
       return
     }
 
-    // 判断当前会话id是否有聊天记录，有缓存则直接赋值展示
-    if (chatStore.chatMap[`${_id_}`] && chatStore.chatMap[`${_id_}`].length) {
-      bubbleItems.value = chatStore.chatMap[`${_id_}`] as MessageItem[]
-      // 滚动到底部
-      setTimeout(() => {
-        bubbleListRef.value!.scrollToBottom()
-      }, 350)
-      return
+    // 加载会话历史消息并回显
+    try {
+      const messages = await getConversationMessageListApi(Number(id))
+      bubbleItems.value = messages.map(mapHistoryMessage)
+    } catch (error) {
+      console.error("getConversationMessageList错误:", error)
+      bubbleItems.value = []
     }
-
-    // 无缓存则请求聊天记录
-    await chatStore.requestChatList(`${_id_}`)
-    // 请求聊天记录后，赋值回显，并滚动到底部
-    bubbleItems.value = chatStore.chatMap[`${_id_}`] as MessageItem[]
 
     // 滚动到底部
     setTimeout(() => {
-      bubbleListRef.value!.scrollToBottom()
+      bubbleListRef.value?.scrollToBottom()
     }, 350)
 
-    // 如果本地有发送内容，则直接发送
-    const v = localStorage.getItem("chatContent")
-    if (v) {
-      // 发送消息
-      setTimeout(() => {
-        startSSE(v)
-      }, 350)
-
-      localStorage.removeItem("chatContent")
+    // 新创建的会话：发送暂存的第一条消息
+    if (pendingMessage.value) {
+      const message = pendingMessage.value
+      pendingMessage.value = ""
+      startSSE(message)
     }
   },
-  { immediate: true, deep: true }
+  { immediate: true }
 )
 
-// Sender 统一提交入口：无会话先创建会话（内容由 watch 读取 localStorage 后发送），有会话直接 SSE 发送
+// Sender 统一提交入口：无会话先创建会话（内容由 watch 中 pendingMessage 触发发送），有会话直接 SSE 发送
 async function handleSend() {
+  const content = inputValue.value
+  if (!content.trim())
+    return
+
   if (!route.query?.sessionId) {
-    localStorage.setItem("chatContent", inputValue.value)
-    await sessionStore.createSessionList({
-      userId: userStore.userInfo?.userId as number,
-      sessionContent: inputValue.value,
-      sessionTitle: inputValue.value.slice(0, 10),
-      remark: inputValue.value.slice(0, 10)
-    })
+    // 开启新聊天：先创建会话（后端要调大模型生成标题，耗时较长，Sender 置为 loading），
+    // 拿到会话 id 才能调用 chat 接口
+    if (!currentModel.value) {
+      ElMessage.warning("请先选择模型")
+      return
+    }
+    pendingMessage.value = content
+    inputValue.value = ""
+    isLoading.value = true
+    try {
+      const vo = await createConversationApi({ modelId: currentModel.value.value, message: content })
+      // 刷新侧栏会话列表
+      sidebarRef.value?.refresh()
+      // 跳转聊天页（query 携带会话id，保持 path 不变，tags-view 只保留一个标签），
+      // loading 由 watch 中触发的 startSSE 接管
+      router.replace({ name: "AIChat", query: { sessionId: `${vo.id}` } })
+    } catch (error) {
+      console.error("createSession错误:", error)
+      isLoading.value = false
+      pendingMessage.value = ""
+      inputValue.value = content
+    }
     return
   }
-  startSSE(inputValue.value)
+  startSSE(content)
 }
 
-// 封装数据处理逻辑
-function handleDataChunk(chunk: Record<string, any>) {
-  try {
-    const reasoningChunk = chunk.choices?.[0].delta.reasoning_content
-    if (reasoningChunk) {
-      // 开始思考链状态
-      bubbleItems.value[bubbleItems.value.length - 1].thinkingStatus = "thinking"
-      bubbleItems.value[bubbleItems.value.length - 1].loading = true
-      bubbleItems.value[bubbleItems.value.length - 1].thinlCollapse = true
-      if (bubbleItems.value.length) {
-        bubbleItems.value[bubbleItems.value.length - 1].reasoning_content += reasoningChunk
-      }
-    }
+// SSE 流式回调：思考链 / 正文 / 结束 / 错误
+function handleThinkingChunk(text: string) {
+  const last = bubbleItems.value[bubbleItems.value.length - 1]
+  if (!last)
+    return
+  last.thinkingStatus = "thinking"
+  last.loading = true
+  last.thinlCollapse = true
+  last.reasoning_content = (last.reasoning_content ?? "") + text
+}
 
-    // 另一种思考中形式，content中有 <think></think> 的格式
-    // 一开始匹配到 <think> 开始，匹配到 </think> 结束，并处理标签中的内容为思考内容
-    const parsedChunk = chunk.choices?.[0].delta.content
-    if (parsedChunk) {
-      const thinkStart = parsedChunk.includes("<think>")
-      const thinkEnd = parsedChunk.includes("</think>")
-      if (thinkStart) {
-        isThinking = true
-      }
-      if (thinkEnd) {
-        isThinking = false
-      }
-      if (isThinking) {
-        // 开始思考链状态
-        bubbleItems.value[bubbleItems.value.length - 1].thinkingStatus = "thinking"
-        bubbleItems.value[bubbleItems.value.length - 1].loading = true
-        bubbleItems.value[bubbleItems.value.length - 1].thinlCollapse = true
-        if (bubbleItems.value.length) {
-          bubbleItems.value[bubbleItems.value.length - 1].reasoning_content += parsedChunk
-            .replace("<think>", "")
-            .replace("</think>", "")
-        }
-      } else {
-        // 结束 思考链状态
-        bubbleItems.value[bubbleItems.value.length - 1].thinkingStatus = "end"
-        bubbleItems.value[bubbleItems.value.length - 1].loading = false
-        if (bubbleItems.value.length) {
-          bubbleItems.value[bubbleItems.value.length - 1].content += parsedChunk
-        }
-      }
-    }
-  } catch (err) {
-    // 这里如果使用了中断，会有报错，可以忽略不管
-    console.error("解析数据时出错:", err)
+function handleTextChunk(text: string) {
+  const last = bubbleItems.value[bubbleItems.value.length - 1]
+  if (!last)
+    return
+  last.thinkingStatus = "end"
+  last.loading = false
+  last.content = (last.content ?? "") + text
+}
+
+function finishLastMessage(attributes?: DoneAttributes) {
+  const last = bubbleItems.value[bubbleItems.value.length - 1]
+  if (!last)
+    return
+  if (attributes) {
+    last.inputToken = attributes.inputToken
+    last.outputToken = attributes.outputToken
+    last.totalToken = attributes.totalToken
   }
-}
-
-// 封装错误处理逻辑
-function handleError(err: any) {
-  console.error("Fetch error:", err)
+  last.thinkingStatus = "end"
+  last.loading = false
+  last.typing = false
 }
 
 async function startSSE(chatContent: string) {
+  if (!currentModel.value) {
+    ElMessage.warning("请先选择模型")
+    return
+  }
+
   // 清空输入框
   inputValue.value = ""
   addMessage(chatContent, true)
@@ -207,56 +225,82 @@ async function startSSE(chatContent: string) {
 
   isLoading.value = true
   abortController = new AbortController()
-  isThinking = false
 
   try {
-    for await (const chunk of send(
+    await streamChat(
       {
-        messages: bubbleItems.value
-          .filter((item: any) => item.role === "user")
-          .map((item: any) => ({
-            role: item.role,
-            content: item.content
-          })),
-        sessionId: route.query?.sessionId ? String(route.query.sessionId) : undefined,
-        userId: userStore.userInfo?.userId,
-        model: modelStore.currentModelInfo.modelName ?? ""
+        modelId: currentModel.value.value,
+        conversationId: Number(sessionId.value),
+        message: chatContent
+      },
+      {
+        onThinking: handleThinkingChunk,
+        onText: handleTextChunk,
+        onDone: attributes => finishLastMessage(attributes),
+        onError: (message) => {
+          ElMessage.error(message || "聊天服务异常")
+          finishLastMessage()
+          const last = bubbleItems.value[bubbleItems.value.length - 1]
+          if (last)
+            last.content = `${last.content ?? ""}\n\n> ⚠️ ${message}`
+        }
       },
       abortController.signal
-    )) {
-      handleDataChunk((chunk as SseChunk).result as Record<string, any>)
-    }
+    )
   } catch (err) {
-    handleError(err)
+    // 用户主动中断不提示
+    if ((err as Error)?.name !== "AbortError") {
+      console.error("Fetch error:", err)
+      ElMessage.error("聊天服务异常")
+      finishLastMessage()
+    }
   } finally {
     isLoading.value = false
     abortController = null
-    // 停止打字器状态
-    if (bubbleItems.value.length) {
-      bubbleItems.value[bubbleItems.value.length - 1].typing = false
-    }
+    finishLastMessage()
   }
 }
 
 // 中断请求
 function cancelSSE() {
   abortController?.abort()
-  // 结束最后一条消息打字状态
-  if (bubbleItems.value.length) {
-    bubbleItems.value[bubbleItems.value.length - 1].typing = false
+}
+
+/** 把后端历史消息（USER/AI JSON）映射为气泡数据 */
+function mapHistoryMessage(message: ChatMessage, index: number): MessageItem {
+  if (message.type === "USER") {
+    return {
+      key: index,
+      avatar: USER_AVATAR,
+      avatarSize: "32px",
+      role: "user",
+      placement: "end",
+      content: (message.contents ?? []).map(item => item.text).join(""),
+      noStyle: false
+    }
+  }
+  return {
+    key: index,
+    avatar: AI_AVATAR,
+    avatarSize: "32px",
+    role: "ai",
+    placement: "start",
+    isMarkdown: true,
+    content: message.text ?? "",
+    reasoning_content: message.thinking ?? "",
+    thinkingStatus: "end",
+    thinlCollapse: false,
+    noStyle: true
   }
 }
 
 // 添加消息 - 维护聊天记录
 function addMessage(message: string, isUser: boolean) {
-  const i = bubbleItems.value.length
   const obj: MessageItem = {
-    key: i,
-    avatar: isUser
-      ? avatar.value
-      : "https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png",
+    key: bubbleItems.value.length,
+    avatar: isUser ? USER_AVATAR : AI_AVATAR,
     avatarSize: "32px",
-    role: isUser ? "user" : "system",
+    role: isUser ? "user" : "ai",
     placement: isUser ? "end" : "start",
     isMarkdown: !isUser,
     loading: !isUser,
@@ -275,11 +319,11 @@ function handleChange(payload: { value: boolean, status: ThinkingStatus }) {
 }
 
 function handleDeleteCard(_item: FilesCardProps, index: number) {
-  filesStore.deleteFileByIndex(index)
+  deleteFileByIndex(index)
 }
 
 watch(
-  () => filesStore.filesList.length,
+  () => filesList.value.length,
   (val) => {
     if (val > 0) {
       nextTick(() => {
@@ -296,7 +340,7 @@ watch(
 
 <template>
   <div class="ai-chat-page">
-    <SessionSidebar />
+    <SessionSidebar ref="sidebarRef" />
     <div class="chat-container">
       <!-- 固定高度容器：Sender 向上展开时挤压上方消息列表（BubbleList 内部滚动） -->
       <div class="chat-warp" :class="{ 'is-welcome': !sessionId }">
@@ -318,12 +362,18 @@ watch(
           <template #content="{ item }">
             <!-- chat 内容走 markdown -->
             <XMarkdown
-              v-if="item.content && item.role === 'system'" :markdown="item.content" class="markdown-body"
+              v-if="item.content && item.role === 'ai'" :markdown="item.content" class="markdown-body"
               :themes="{ light: 'github-light', dark: 'github-dark' }" :default-theme-mode="codeThemeMode"
             />
             <!-- user 内容 纯文本 -->
             <div v-if="item.content && item.role === 'user'" class="user-content">
               {{ item.content }}
+            </div>
+          </template>
+
+          <template #footer="{ item }">
+            <div v-if="item.role === 'ai' && item.totalToken" class="token-info">
+              输入 {{ item.inputToken ?? 0 }} · 输出 {{ item.outputToken ?? 0 }} · 总计 {{ item.totalToken }}
             </div>
           </template>
         </BubbleList>
@@ -345,7 +395,7 @@ watch(
             <template #header>
               <div class="sender-header">
                 <Attachments
-                  :items="filesStore.filesList"
+                  :items="filesList"
                   :hide-upload="true"
                   @delete-card="handleDeleteCard"
                 >
@@ -377,8 +427,8 @@ watch(
             </template>
             <template #prefix>
               <div class="sender-prefix">
-                <FilesSelect />
-                <ModelSelect />
+                <FilesSelect @select="addFiles" />
+                <ModelSelect v-model="currentModel" />
               </div>
             </template>
           </Sender>
@@ -530,6 +580,12 @@ watch(
   .user-content {
     // 换行
     white-space: pre-wrap;
+  }
+
+  // token 统计小字，跟随主题文字色
+  .token-info {
+    font-size: 12px;
+    color: var(--el-text-color-secondary);
   }
 
   .markdown-body {

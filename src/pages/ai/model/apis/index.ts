@@ -37,10 +37,10 @@ export function getModelPageApi(params: Model.TableRequestData) {
 }
 
 /** 测试连通性 */
-export function testModelApi(modelId: number, message: string) {
+export function testModelApi(modelId: number) {
   return request<Model.TestResponseData>({
     url: "ai/model/test",
     method: "get",
-    params: { modelId, message }
+    params: { modelId }
   })
 }

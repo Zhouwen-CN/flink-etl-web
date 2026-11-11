@@ -1,41 +1,48 @@
-<!-- 会话侧栏（迁移自 ruoyi-element-ai layouts/components/Aside/index.vue）
-  简化说明：
-  - 原为应用级侧栏（依赖 designStore 的折叠悬停动画、Header 的 Collapse 组件），
-    迁移后作为页内静态面板，使用组件内部 isCollapse 状态做简单折叠；
-  - 原 SvgIcon(name="ctrl+k") 改为 vite-svg-loader 的 ?component 导入（ctrl-k.svg）；
-  - 原 UnoCSS 原子类已重写为 scoped SCSS。
--->
+<!-- 会话侧栏 -->
 <script setup lang="ts">
 import type { ConversationItem, ConversationMenuCommand } from "vue-element-plus-x/types/Conversations"
-import type { ChatSessionVo } from "../../api/types"
+import type { ConversationVO } from "../../api/types"
 import SvgCtrlK from "@@/assets/icons/ctrl-k.svg?component"
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { Conversations } from "vue-element-plus-x"
 import { useRoute, useRouter } from "vue-router"
-import { get_session } from "../../api"
-import { useSessionStore } from "../../stores/session"
+import { deleteConversationApi, getConversationListApi, renameConversationApi } from "../../api"
+
+// ============================== 会话列表（本组件私有数据） ==============================
+
+const sessionList = ref<ConversationVO[]>([])
+
+// 获取会话列表
+async function fetchSessionList() {
+  try {
+    sessionList.value = await getConversationListApi()
+  } catch (error) {
+    console.error("fetchSessionList错误:", error)
+  }
+}
+
+onMounted(fetchSessionList)
 
 const route = useRoute()
 const router = useRouter()
-const sessionStore = useSessionStore()
 
 // 页内折叠状态：收起时面板整体隐藏，左上角保留展开入口图标
 const isCollapse = ref(false)
 
 const sessionId = computed(() => route.query?.sessionId)
-const conversationsList = computed(() => sessionStore.sessionList)
-const loadMoreLoading = computed(() => sessionStore.isLoadingMore)
-const active = ref<string | undefined>()
+// 选中态：Conversations 组件用 uniqueKey === active 严格相等判断高亮，
+// uniqueKey 取自 rowKey 字段（后端 id 为 number），这里统一转成 number
+const active = ref<number | undefined>()
 
-onMounted(async () => {
-  // 获取会话列表
-  await sessionStore.requestSessionList()
-  // 高亮最新会话
-  if (conversationsList.value.length > 0 && sessionId.value) {
-    const currentSessionRes = await get_session(`${sessionId.value}`)
-    // 通过 ID 查询详情，设置当前会话 (因为有分页)
-    sessionStore.setCurrentSession(currentSessionRes.data)
-  }
+watch(
+  () => route.query?.sessionId,
+  (id) => {
+    active.value = id ? Number(id) : undefined
+  },
+  { immediate: true }
+)
+
+onMounted(() => {
   // 注册 Ctrl+K 快捷键（与"新对话"按钮等效）
   window.addEventListener("keydown", handleKeydown)
 })
@@ -52,17 +59,9 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
-watch(
-  () => sessionStore.currentSession,
-  (newValue) => {
-    active.value = newValue ? `${newValue.id}` : undefined
-  }
-)
-
-// 创建会话
+// 创建会话（回到欢迎页，发送首条消息时才真正创建）
 function handleCreatChat() {
-  // 创建会话, 跳转到默认聊天
-  sessionStore.createSessionBtn()
+  router.replace({ name: "AIChat" })
 }
 
 // 展开侧栏（点击收起状态下的入口图标）
@@ -71,39 +70,28 @@ function handleExpand() {
 }
 
 // 切换会话
-function handleChange(item: ConversationItem<ChatSessionVo>) {
-  sessionStore.setCurrentSession(item)
+function handleChange(item: ConversationItem<ConversationVO>) {
   router.replace({
     name: "AIChat",
     query: { sessionId: `${item.id}` }
   })
 }
 
-// 处理组件触发的加载更多事件
-async function handleLoadMore() {
-  if (!sessionStore.hasMore)
-    return // 无更多数据时不加载
-  await sessionStore.loadMoreSessions()
-}
-
 // 右键菜单
-function handleMenuCommand(command: ConversationMenuCommand, item: ConversationItem<ChatSessionVo>) {
+function handleMenuCommand(command: ConversationMenuCommand, item: ConversationItem<ConversationVO>) {
   switch (command) {
     case "delete":
-      ElMessageBox.confirm(`正在删除记录：${item.sessionTitle}，确认删除？`, "提示", {
+      ElMessageBox.confirm(`正在删除记录：${item.title}，确认删除？`, "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
       })
-        .then(() => {
-          // 删除会话
-          sessionStore.deleteSessions([item.id!])
-          nextTick(() => {
-            if (item.id === active.value) {
-              // 如果删除当前会话 返回到默认页
-              sessionStore.createSessionBtn()
-            }
-          })
+        .then(async () => {
+          await deleteConversationApi(item.id!)
+          fetchSessionList()
+          // 如果删除的是当前会话，返回到默认页
+          if (`${item.id}` === sessionId.value)
+            router.replace({ name: "AIChat" })
         })
         .catch(() => {
           // 取消删除
@@ -116,7 +104,7 @@ function handleMenuCommand(command: ConversationMenuCommand, item: ConversationI
         inputErrorMessage: "请输入对话名称",
         confirmButtonClass: "el-button--primary",
         roundButton: false,
-        inputValue: item.sessionTitle, // 设置默认值
+        inputValue: item.title, // 设置默认值
         autofocus: true,
         inputValidator: (value) => {
           if (!value) {
@@ -125,33 +113,22 @@ function handleMenuCommand(command: ConversationMenuCommand, item: ConversationI
           return true
         }
       }).then(({ value }) => {
-        sessionStore
-          .updateSession({
-            id: item.id!,
-            sessionTitle: value,
-            sessionContent: item.sessionContent
+        renameConversationApi(item.id!, value).then(() => {
+          fetchSessionList()
+          ElMessage({
+            type: "success",
+            message: "修改成功"
           })
-          .then(() => {
-            ElMessage({
-              type: "success",
-              message: "修改成功"
-            })
-            nextTick(() => {
-              // 如果是当前会话，则更新当前选中会话信息
-              if (sessionStore.currentSession?.id === item.id) {
-                sessionStore.setCurrentSession({
-                  ...item,
-                  sessionTitle: value
-                })
-              }
-            })
-          })
+        })
       })
       break
     default:
       break
   }
 }
+
+// 供父组件（AI Chat 页面）在创建会话后调用，刷新会话列表
+defineExpose({ refresh: fetchSessionList })
 </script>
 
 <template>
@@ -185,20 +162,17 @@ function handleMenuCommand(command: ConversationMenuCommand, item: ConversationI
         </div>
 
         <div v-if="!isCollapse" class="aside-content">
-          <div v-if="conversationsList.length > 0" class="conversations-wrap">
+          <div v-if="sessionList.length > 0" class="conversations-wrap">
             <Conversations
               v-model:active="active"
-              :items="conversationsList"
+              :items="sessionList"
               :label-max-width="200"
               :show-tooltip="true"
               :tooltip-offset="60"
               show-built-in-menu
-              groupable
               row-key="id"
-              label-key="sessionTitle"
+              label-key="title"
               tooltip-placement="right"
-              :load-more="handleLoadMore"
-              :load-more-loading="loadMoreLoading"
               :items-style="{
                 marginLeft: '8px',
                 userSelect: 'none',

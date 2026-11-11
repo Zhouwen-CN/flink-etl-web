@@ -1,31 +1,32 @@
-<!-- 切换模型（迁移自 ruoyi-element-ai components/ModelSelect/index.vue）
-  注：模板中原使用 UnoCSS 原子类，已重写为 scoped SCSS；
-  原 SvgIcon(name="models") 改为 vite-svg-loader 的 ?component 导入。
--->
+<!-- 切换模型 -->
 <script setup lang="ts">
-import type { GetSessionListVO } from "../../api/types"
+import type { ModelOptionVO } from "../../api/types"
 import SvgModels from "@@/assets/icons/models.svg?component"
 import { computed, onMounted, ref } from "vue"
-import { useModelStore } from "../../stores/model"
+import { getModelListApi } from "../../api"
 import Popover from "../Popover/index.vue"
 
-const modelStore = useModelStore()
+// v-model：当前选中的模型（由父组件 AI Chat 页面持有，发送消息时读取）
+const model = defineModel<ModelOptionVO | null>({ default: null })
 
-onMounted(async () => {
-  await modelStore.requestModelList()
-  // 设置默认模型
-  if (
-    modelStore.modelList.length > 0
-    && (!modelStore.currentModelInfo || !modelStore.currentModelInfo.modelName)
-  ) {
-    modelStore.setCurrentModelInfo(modelStore.modelList[0])
+// 模型列表（本组件私有数据，首次获取后默认选中第一个）
+const modelList = ref<ModelOptionVO[]>([])
+
+async function requestModelList() {
+  try {
+    modelList.value = await getModelListApi()
+    if (!model.value)
+      model.value = modelList.value[0] ?? null
+  } catch (error) {
+    console.error("requestModelList错误:", error)
   }
+}
+
+onMounted(() => {
+  requestModelList()
 })
 
-const currentModelName = computed(
-  () => modelStore.currentModelInfo && modelStore.currentModelInfo.modelName
-)
-const popoverList = computed(() => modelStore.modelList)
+const currentModelName = computed(() => model.value?.label ?? "")
 
 /* 弹出面板 开始 */
 const popoverStyle = ref({
@@ -42,12 +43,12 @@ const popoverRef = ref()
 // 显示
 async function showPopover() {
   // 获取最新的模型列表
-  await modelStore.requestModelList()
+  await requestModelList()
 }
 
 // 点击
-function handleClick(item: GetSessionListVO) {
-  modelStore.setCurrentModelInfo(item)
+function handleClick(item: ModelOptionVO) {
+  model.value = item
   popoverRef.value?.hide?.()
 }
 </script>
@@ -77,30 +78,17 @@ function handleClick(item: GetSessionListVO) {
 
       <div class="popover-content-box">
         <div
-          v-for="item in popoverList"
-          :key="item.id"
+          v-for="item in modelList"
+          :key="item.value"
           class="popover-content-box-items"
         >
-          <Popover
-            trigger-class="popover-trigger-item-text"
-            popover-class="rounded-tooltip"
-            placement="right"
-            trigger="hover"
-            :offset="[12, 0]"
+          <div
+            class="popover-content-box-item"
+            :class="{ 'is-select': item.value === model?.value }"
+            @click="handleClick(item)"
           >
-            <template #trigger>
-              <div
-                class="popover-content-box-item"
-                :class="{ 'is-select': item.modelName === currentModelName }"
-                @click="handleClick(item)"
-              >
-                {{ item.modelName }}
-              </div>
-            </template>
-            <div class="popover-content-box-item-text">
-              {{ item.remark }}
-            </div>
-          </Popover>
+            {{ item.label }}
+          </div>
         </div>
       </div>
     </Popover>
@@ -146,12 +134,6 @@ function handleClick(item: GetSessionListVO) {
     &:hover {
       background-color: rgba(0, 0, 0, 0.04);
     }
-
-    :deep() {
-      .popover-trigger-item-text {
-        width: 100%;
-      }
-    }
   }
 
   .popover-content-box-item {
@@ -167,17 +149,6 @@ function handleClick(item: GetSessionListVO) {
       color: var(--el-color-primary, #409eff);
       background-color: rgba(0, 0, 0, 0.04);
     }
-  }
-
-  .popover-content-box-item-text {
-    max-width: 200px;
-    padding: 8px;
-    font-size: 12px;
-    line-height: 1.25;
-    color: white;
-    word-wrap: break-word;
-    background-color: black;
-    border-radius: 8px;
   }
 
   // 滚动条样式

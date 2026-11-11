@@ -1,11 +1,11 @@
-<!-- 文件上传（迁移自 ruoyi-element-ai components/FilesSelect/index.vue）
-  点击纸夹图标直接调起系统文件选择框；粘贴截图转附件见 hooks/usePasteFiles.ts
--->
+<!-- 文件上传 -->
 <script setup lang="ts">
 import { ref } from "vue"
-import { useFilesStore } from "../../stores/files"
 
-const filesStore = useFilesStore()
+const emit = defineEmits<{
+  /** 用户选中的文件（由父组件追加进附件列表） */
+  select: [files: File[]]
+}>()
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
@@ -21,7 +21,7 @@ function open() {
 function onFileChange(e: Event) {
   const input = e.target as HTMLInputElement
   if (input.files)
-    filesStore.addFiles(Array.from(input.files))
+    emit("select", Array.from(input.files))
   input.value = ""
 }
 </script>

@@ -4,13 +4,13 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { Typewriter } from "vue-element-plus-x"
+import { useUserStore } from "@/pinia/stores/user"
 import { useTimeGreeting } from "../../hooks/useTimeGreeting"
-import { useUserStore } from "../../stores/user"
 
 const greeting = useTimeGreeting()
 const userStore = useUserStore()
 
-const username = computed(() => userStore.userInfo?.username ?? "AI 助手")
+const username = computed(() => userStore.nickname || userStore.username || "AI 助手")
 </script>
 
 <template>

@@ -2,7 +2,7 @@
 import type { FormRules } from "element-plus"
 import type { CreateOrUpdateModelRequestData, TableData } from "./apis/type"
 import { usePagination } from "@@/composables/usePagination"
-import { CirclePlus, Delete, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
+import { CirclePlus, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
 import { getDictionaryDataApi } from "@/common/apis/dict"
 import useDictionary from "@/common/composables/useDictionary"
@@ -46,7 +46,7 @@ const formRules: FormRules<CreateOrUpdateModelRequestData> = {
 }
 
 function handleCreateOrUpdate() {
-  formRef.value?.validate((valid) => {
+  formRef.value?.validate((valid: boolean) => {
     if (!valid) {
       ElMessage.error("表单校验不通过")
       return
@@ -93,7 +93,7 @@ function handleDelete(row: TableData) {
 const testLoadingId = ref<number>()
 function handleTest(row: TableData) {
   testLoadingId.value = row.id
-  testModelApi(row.id, "Hello").then(({ data }) => {
+  testModelApi(row.id).then(({ data }) => {
     ElMessageBox.alert(data || "（空响应）", `连通性测试：${row.name}`, {
       confirmButtonText: "确定",
       type: "success"
@@ -210,7 +210,7 @@ onMounted(() => {
               <el-button type="primary" text bg size="small" @click="handleUpdate(scope.row)">
                 修改
               </el-button>
-              <el-button type="danger" text bg size="small" :icon="Delete" @click="handleDelete(scope.row)">
+              <el-button type="danger" text bg size="small" @click="handleDelete(scope.row)">
                 删除
               </el-button>
             </template>

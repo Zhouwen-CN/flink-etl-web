@@ -4,7 +4,7 @@ import { request } from "@/http/axios"
 /** 查 */
 export function getTableDataApi(params: Tables.TableRequestData) {
   return request<Tables.TableResponseData>({
-    url: "log/login",
+    url: "sys/log/login",
     method: "get",
     params
   })

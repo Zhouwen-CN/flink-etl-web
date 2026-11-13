@@ -4,7 +4,7 @@ import { request } from "@/http/axios"
 /** 增 */
 export function createTableDataApi(data: Permission.CreateOrUpdateTableRequestData) {
   return request({
-    url: "permission",
+    url: "sys/permission",
     method: "post",
     data
   })
@@ -13,7 +13,7 @@ export function createTableDataApi(data: Permission.CreateOrUpdateTableRequestDa
 /** 删 */
 export function deleteTableDataApi(id: number) {
   return request({
-    url: `permission/${id}`,
+    url: `sys/permission/${id}`,
     method: "delete"
   })
 }
@@ -21,7 +21,7 @@ export function deleteTableDataApi(id: number) {
 /** 批量删 */
 export function deleteBatchTableDataApi(params: Permission.DeleteBatchTableRequestData) {
   return request({
-    url: "permission",
+    url: "sys/permission",
     method: "delete",
     params
   })
@@ -30,7 +30,7 @@ export function deleteBatchTableDataApi(params: Permission.DeleteBatchTableReque
 /** 改 */
 export function updateTableDataApi(data: Permission.CreateOrUpdateTableRequestData) {
   return request({
-    url: "permission",
+    url: "sys/permission",
     method: "put",
     data
   })
@@ -39,7 +39,7 @@ export function updateTableDataApi(data: Permission.CreateOrUpdateTableRequestDa
 /** 查 */
 export function getTableDataApi(params: Permission.TableRequestData) {
   return request<Permission.TableResponseData>({
-    url: "permission",
+    url: "sys/permission",
     method: "get",
     params
   })

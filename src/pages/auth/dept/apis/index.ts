@@ -4,7 +4,7 @@ import { request } from "@/http/axios"
 /** 增 */
 export function createTableDataApi(data: Dept.CreateOrUpdateTableRequestData) {
   return request({
-    url: "dept",
+    url: "sys/dept",
     method: "post",
     data
   })
@@ -13,7 +13,7 @@ export function createTableDataApi(data: Dept.CreateOrUpdateTableRequestData) {
 /** 删 */
 export function deleteTableDataApi(id: number) {
   return request({
-    url: `dept/${id}`,
+    url: `sys/dept/${id}`,
     method: "delete"
   })
 }
@@ -21,7 +21,7 @@ export function deleteTableDataApi(id: number) {
 /** 改 */
 export function updateTableDataApi(data: Dept.CreateOrUpdateTableRequestData) {
   return request({
-    url: "dept",
+    url: "sys/dept",
     method: "put",
     data
   })
@@ -30,7 +30,7 @@ export function updateTableDataApi(data: Dept.CreateOrUpdateTableRequestData) {
 /** 查：部门树 */
 export function getTableDataApi(params?: Dept.GetTableRequestData) {
   return request<Dept.TableResponseData>({
-    url: "dept/tree",
+    url: "sys/dept/tree",
     method: "get",
     params: { name: params?.name ?? undefined }
   })

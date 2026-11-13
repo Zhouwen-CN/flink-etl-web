@@ -5,7 +5,7 @@ import { request } from "@/http/axios"
 /** 增 */
 export function createTableDataApi(data: User.CreateOrUpdateTableRequestData) {
   return request({
-    url: "alert",
+    url: "etl/alert",
     method: "post",
     data
   })
@@ -14,7 +14,7 @@ export function createTableDataApi(data: User.CreateOrUpdateTableRequestData) {
 /** 删 */
 export function deleteTableDataApi(id: number) {
   return request({
-    url: `alert/${id}`,
+    url: `etl/alert/${id}`,
     method: "delete"
   })
 }
@@ -22,7 +22,7 @@ export function deleteTableDataApi(id: number) {
 /** 批量删 */
 export function deleteBatchTableDataApi(params: User.DeleteBatchTableRequestData) {
   return request({
-    url: "alert",
+    url: "etl/alert",
     method: "delete",
     params
   })
@@ -31,7 +31,7 @@ export function deleteBatchTableDataApi(params: User.DeleteBatchTableRequestData
 /** 改 */
 export function updateTableDataApi(data: User.CreateOrUpdateTableRequestData) {
   return request({
-    url: "alert",
+    url: "etl/alert",
     method: "put",
     data
   })
@@ -40,7 +40,7 @@ export function updateTableDataApi(data: User.CreateOrUpdateTableRequestData) {
 /** 查 */
 export function getTableDataApi(params: User.TableRequestData) {
   return request<User.TableResponseData>({
-    url: "alert",
+    url: "etl/alert",
     method: "get",
     params
   })
@@ -49,7 +49,7 @@ export function getTableDataApi(params: User.TableRequestData) {
 /** 获取告警任务选择器数据 */
 export function getJobSelectorDataApi() {
   return request<DictionaryResponseData>({
-    url: "alert/job/selector",
+    url: "etl/alert/job/selector",
     method: "get"
   })
 }
@@ -57,7 +57,7 @@ export function getJobSelectorDataApi() {
 /** 获取告警任务ID列表 */
 export function getJobIdsDataApi(id: number) {
   return request<ApiResponseData<number[]>>({
-    url: `alert/job/${id}`,
+    url: `etl/alert/job/${id}`,
     method: "get"
   })
 }
@@ -65,7 +65,7 @@ export function getJobIdsDataApi(id: number) {
 /** 测试发送邮件 */
 export function testSendEmailDataApi(id: number) {
   return request<ApiResponseData<number[]>>({
-    url: `alert/test/${id}`,
+    url: `etl/alert/test/${id}`,
     method: "get"
   })
 }

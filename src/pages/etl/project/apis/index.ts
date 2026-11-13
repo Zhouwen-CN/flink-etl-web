@@ -4,7 +4,7 @@ import { request } from "@/http/axios"
 /** 增 */
 export function createTableDataApi(data: User.CreateOrUpdateTableRequestData) {
   return request({
-    url: "project",
+    url: "etl/project",
     method: "post",
     data
   })
@@ -13,7 +13,7 @@ export function createTableDataApi(data: User.CreateOrUpdateTableRequestData) {
 /** 删 */
 export function deleteTableDataApi(id: number) {
   return request({
-    url: `project/${id}`,
+    url: `etl/project/${id}`,
     method: "delete"
   })
 }
@@ -21,7 +21,7 @@ export function deleteTableDataApi(id: number) {
 /** 改 */
 export function updateTableDataApi(data: User.CreateOrUpdateTableRequestData) {
   return request({
-    url: "project",
+    url: "etl/project",
     method: "put",
     data
   })
@@ -30,7 +30,7 @@ export function updateTableDataApi(data: User.CreateOrUpdateTableRequestData) {
 /** 查 */
 export function getTableDataApi(params: User.TableRequestData) {
   return request<User.TableResponseData>({
-    url: "project",
+    url: "etl/project",
     method: "get",
     params
   })
@@ -39,7 +39,7 @@ export function getTableDataApi(params: User.TableRequestData) {
 /** 查部门选择器（树形） */
 export function getDeptSelectorDataApi() {
   return request<User.DeptSelectorResponseData>({
-    url: "project/dept/selector",
+    url: "etl/project/dept/selector",
     method: "get"
   })
 }

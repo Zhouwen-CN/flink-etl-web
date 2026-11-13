@@ -3,7 +3,7 @@ import { request } from "@/http/axios"
 
 export function getDictionaryDataApi(dictTypeName: string) {
   return request<DictionaryResponseData>({
-    url: "dict/data/selector",
+    url: "sys/dict/data/selector",
     method: "get",
     params: {
       name: dictTypeName

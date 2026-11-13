@@ -4,7 +4,7 @@ import { request } from "@/http/axios"
 /** 配置版本列表 */
 export function getConfigVersionListApi(params: User.ConfigVersionRequestData) {
   return request<ApiResponseData<User.ConfigVersionData[]>>({
-    url: "job/config/version",
+    url: "etl/job/config/version",
     method: "get",
     params
   })
@@ -13,7 +13,7 @@ export function getConfigVersionListApi(params: User.ConfigVersionRequestData) {
 /** 配置回滚 */
 export function rollbackConfigApi(data: User.ConfigRollbackRequestData) {
   return request({
-    url: "job/config/rollback",
+    url: "etl/job/config/rollback",
     method: "put",
     data
   })

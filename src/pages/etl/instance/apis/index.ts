@@ -5,7 +5,7 @@ import { request } from "@/http/axios"
 /** 查 */
 export function getTableDataApi(params: Tables.TableRequestData) {
   return request<Tables.TableResponseData>({
-    url: "instance",
+    url: "etl/instance",
     method: "get",
     params
   })
@@ -14,7 +14,7 @@ export function getTableDataApi(params: Tables.TableRequestData) {
 /** 查项目选择器数据 */
 export function getProjectSelectorDataApi() {
   return request<DictionaryResponseData>({
-    url: "instance/project/selector",
+    url: "etl/instance/project/selector",
     method: "get"
   })
 }
@@ -22,7 +22,7 @@ export function getProjectSelectorDataApi() {
 /** 查集群选择器数据 */
 export function getClusterSelectorDataApi() {
   return request<DictionaryResponseData>({
-    url: "instance/cluster/selector",
+    url: "etl/instance/cluster/selector",
     method: "get"
   })
 }
@@ -30,7 +30,7 @@ export function getClusterSelectorDataApi() {
 /** 查任务选择器数据 */
 export function getJobSelectorDataApi() {
   return request<DictionaryResponseData>({
-    url: "instance/job/selector",
+    url: "etl/instance/job/selector",
     method: "get"
   })
 }
@@ -38,7 +38,7 @@ export function getJobSelectorDataApi() {
 /** 查状态选择器数据 */
 export function getStatusSelectorDataApi() {
   return request<DictionaryResponseData>({
-    url: "instance/status/selector",
+    url: "etl/instance/status/selector",
     method: "get"
   })
 }
@@ -46,7 +46,7 @@ export function getStatusSelectorDataApi() {
 /** 查jar选择器数据 */
 export function getJarSelectorDataApi() {
   return request<DictionaryResponseData>({
-    url: "instance/jar/selector",
+    url: "etl/instance/jar/selector",
     method: "get"
   })
 }
@@ -54,7 +54,7 @@ export function getJarSelectorDataApi() {
 /** 停止任务 */
 export function getStopjobDataApi(instanceId: string) {
   return request({
-    url: `instance/job/cancel/${instanceId}`,
+    url: `etl/instance/job/cancel/${instanceId}`,
     method: "put"
   })
 }
@@ -62,7 +62,7 @@ export function getStopjobDataApi(instanceId: string) {
 /** 删除任务实例 */
 export function deleteJobInstanceDataApi(id: string) {
   return request({
-    url: `instance/${id}`,
+    url: `etl/instance/${id}`,
     method: "delete"
   })
 }
@@ -70,7 +70,7 @@ export function deleteJobInstanceDataApi(id: string) {
 /** 重新映射实例 */
 export function remappingJobInstanceDataApi() {
   return request({
-    url: "instance/remapping",
+    url: "etl/instance/remapping",
     method: "patch"
   })
 }

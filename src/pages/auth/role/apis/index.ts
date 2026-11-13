@@ -4,7 +4,7 @@ import { request } from "@/http/axios"
 /** 增 */
 export function createTableDataApi(data: Role.CreateOrUpdateTableRequestData) {
   return request({
-    url: "role",
+    url: "sys/role",
     method: "post",
     data
   })
@@ -13,7 +13,7 @@ export function createTableDataApi(data: Role.CreateOrUpdateTableRequestData) {
 /** 删 */
 export function deleteTableDataApi(id: number) {
   return request({
-    url: `role/${id}`,
+    url: `sys/role/${id}`,
     method: "delete"
   })
 }
@@ -21,7 +21,7 @@ export function deleteTableDataApi(id: number) {
 /** 批量删 */
 export function deleteBatchTableDataApi(params: Role.DeleteBatchTableRequestData) {
   return request({
-    url: "role",
+    url: "sys/role",
     method: "delete",
     params
   })
@@ -30,7 +30,7 @@ export function deleteBatchTableDataApi(params: Role.DeleteBatchTableRequestData
 /** 改 */
 export function updateTableDataApi(data: Role.CreateOrUpdateTableRequestData) {
   return request({
-    url: "role",
+    url: "sys/role",
     method: "put",
     data
   })
@@ -39,7 +39,7 @@ export function updateTableDataApi(data: Role.CreateOrUpdateTableRequestData) {
 /** 查 */
 export function getTableDataApi(params: Role.TableRequestData) {
   return request<Role.TableResponseData>({
-    url: "role",
+    url: "sys/role",
     method: "get",
     params
   })
@@ -48,7 +48,7 @@ export function getTableDataApi(params: Role.TableRequestData) {
 /** 获取权限选择器 */
 export function getPermissionSelectorApi() {
   return request<Role.PermissionSelectorResponseData>({
-    url: "role/permission/selector",
+    url: "sys/role/permission/selector",
     method: "get"
   })
 }
@@ -56,7 +56,7 @@ export function getPermissionSelectorApi() {
 /** 获取权限ID列表 */
 export function getPermissionIdsApi(id: number) {
   return request<Role.PermissionIdsResponseData>({
-    url: `role/permission/${id}`,
+    url: `sys/role/permission/${id}`,
     method: "get"
   })
 }

@@ -5,7 +5,7 @@ import { request } from "@/http/axios"
 /** 增 */
 export function createTableDataApi(data: User.CreateOrUpdateTableRequestData) {
   return request({
-    url: "schedule",
+    url: "etl/schedule",
     method: "post",
     data
   })
@@ -14,7 +14,7 @@ export function createTableDataApi(data: User.CreateOrUpdateTableRequestData) {
 /** 删 */
 export function deleteTableDataApi(id: number) {
   return request({
-    url: `schedule/${id}`,
+    url: `etl/schedule/${id}`,
     method: "delete"
   })
 }
@@ -22,7 +22,7 @@ export function deleteTableDataApi(id: number) {
 /** 批量删 */
 export function deleteBatchTableDataApi(params: User.DeleteBatchTableRequestData) {
   return request({
-    url: "schedule",
+    url: "etl/schedule",
     method: "delete",
     params
   })
@@ -31,7 +31,7 @@ export function deleteBatchTableDataApi(params: User.DeleteBatchTableRequestData
 /** 改 */
 export function updateTableDataApi(data: User.CreateOrUpdateTableRequestData) {
   return request({
-    url: "schedule",
+    url: "etl/schedule",
     method: "put",
     data
   })
@@ -40,7 +40,7 @@ export function updateTableDataApi(data: User.CreateOrUpdateTableRequestData) {
 /** 查 */
 export function getTableDataApi(params: User.TableRequestData) {
   return request<User.TableResponseData>({
-    url: "schedule",
+    url: "etl/schedule",
     method: "get",
     params
   })
@@ -49,7 +49,7 @@ export function getTableDataApi(params: User.TableRequestData) {
 /** 查ETL任务选择器 */
 export function getEtlJobSelectorDataApi() {
   return request<DictionaryResponseData>({
-    url: "schedule/job/selector",
+    url: "etl/schedule/job/selector",
     method: "get"
   })
 }
@@ -57,7 +57,7 @@ export function getEtlJobSelectorDataApi() {
 /** 启动/停止 */
 export function changeStatusTableDataApi(data: User.ChangeStatusRequestData) {
   return request({
-    url: "schedule",
+    url: "etl/schedule",
     method: "patch",
     data
   })

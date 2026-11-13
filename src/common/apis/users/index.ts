@@ -4,7 +4,7 @@ import { request } from "@/http/axios"
 /** 获取当前登录用户详情 */
 export function getCurrentUserApi() {
   return request<Users.CurrentUserResponseData>({
-    url: "user/info",
+    url: "sys/user/info",
     method: "get"
   })
 }
@@ -12,7 +12,7 @@ export function getCurrentUserApi() {
 /** 退出登入 */
 export function logoutApi(id: number) {
   return request({
-    url: `auth/logout/${id}`,
+    url: `sys/auth/logout/${id}`,
     method: "get"
   })
 }
@@ -20,7 +20,7 @@ export function logoutApi(id: number) {
 /** 修改密码 */
 export function updatePasswordApi(data: Users.UpdatePasswordRequestData) {
   return request({
-    url: "user/pwd/change",
+    url: "sys/user/pwd/change",
     method: "patch",
     data
   })

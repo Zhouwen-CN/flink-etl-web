@@ -4,7 +4,7 @@ import { request } from "@/http/axios"
 /** 增 */
 export function createTableDataApi(data: FormData) {
   return request({
-    url: "jar",
+    url: "etl/jar",
     method: "post",
     headers: {
       "Content-Type": "multipart/form-data"
@@ -16,7 +16,7 @@ export function createTableDataApi(data: FormData) {
 /** 删 */
 export function deleteTableDataApi(id: number) {
   return request({
-    url: `jar/${id}`,
+    url: `etl/jar/${id}`,
     method: "delete"
   })
 }
@@ -24,7 +24,7 @@ export function deleteTableDataApi(id: number) {
 /** 批量删 */
 export function deleteBatchTableDataApi(params: User.DeleteBatchTableRequestData) {
   return request({
-    url: "jar",
+    url: "etl/jar",
     method: "delete",
     params
   })
@@ -33,7 +33,7 @@ export function deleteBatchTableDataApi(params: User.DeleteBatchTableRequestData
 /** 改 */
 export function updateTableDataApi(data: FormData) {
   return request({
-    url: "jar",
+    url: "etl/jar",
     method: "put",
     headers: {
       "Content-Type": "multipart/form-data"
@@ -45,7 +45,7 @@ export function updateTableDataApi(data: FormData) {
 /** 查 */
 export function getTableDataApi(params: User.TableRequestData) {
   return request<User.TableResponseData>({
-    url: "jar",
+    url: "etl/jar",
     method: "get",
     params
   })

@@ -36,6 +36,15 @@ export function getModelPageApi(params: Model.TableRequestData) {
   })
 }
 
+/** 模型选择器（获取可用模型列表） */
+export function fetchModelOptionsApi(data: Model.SelectorRequestData) {
+  return request<Model.SelectorResponseData>({
+    url: "ai/model/selector",
+    method: "post",
+    data
+  })
+}
+
 /** 测试连通性 */
 export function testModelApi(modelId: number) {
   return request<Model.TestResponseData>({

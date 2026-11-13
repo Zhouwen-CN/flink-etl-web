@@ -41,3 +41,14 @@ export type TableResponseData = ApiResponseData<{
 }>
 
 export type TestResponseData = ApiResponseData<string>
+
+export interface SelectorRequestData {
+  /** 自增主键（apiKey 为空时，后端通过 id 获取存储的 apiKey） */
+  id?: number
+  /** 大模型请求地址 */
+  baseUrl?: string
+  /** 大模型 API KEY */
+  apiKey?: string
+}
+
+export type SelectorResponseData = ApiResponseData<string[]>

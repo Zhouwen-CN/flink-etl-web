@@ -126,7 +126,6 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     meta: {
       title: "系统工具",
       svgIcon: "system-tools",
-      roles: ["admin", "dev"],
       alwaysShow: true
     },
     children: [
@@ -182,8 +181,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         component: () => import("@/pages/etl/project/index.vue"),
         name: "project",
         meta: {
-          title: "项目管理",
-          roles: ["admin", "dev"]
+          title: "项目管理"
         }
       },
       {
@@ -192,7 +190,6 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         name: "job",
         meta: {
           title: "任务管理",
-          roles: ["admin", "dev"],
           keepAlive: true
         }
       },
@@ -202,7 +199,6 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         name: "instance",
         meta: {
           title: "任务实例",
-          roles: ["admin", "dev"],
           keepAlive: true
         }
       },
@@ -267,7 +263,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         name: "AIModel",
         meta: {
           title: "模型管理",
-          roles: ["admin", "dev"]
+          roles: ["admin"]
         }
       }
     ]

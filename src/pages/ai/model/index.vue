@@ -6,7 +6,7 @@ import { CirclePlus, Refresh, RefreshRight, Search } from "@element-plus/icons-v
 import { cloneDeep } from "lodash-es"
 import { getDictionaryDataApi } from "@/common/apis/dict"
 import useDictionary from "@/common/composables/useDictionary"
-import { createModelApi, deleteModelApi, getModelPageApi, testModelApi, updateModelApi } from "./apis/index"
+import { createModelApi, deleteModelApi, fetchModelOptionsApi, getModelPageApi, testModelApi, updateModelApi } from "./apis/index"
 
 // 接口格式下拉（字典 ai_api_format）
 const { dictData: formatOptions, dictMap: formatMap, run: getFormatOptions } = useDictionary(getDictionaryDataApi)
@@ -71,6 +71,35 @@ function handleCreateOrUpdate() {
 function resetForm() {
   formRef.value?.clearValidate()
   formData.value = cloneDeep(DEFAULT_FORM_DATA)
+  modelNameOptions.value = []
+}
+// #endregion
+
+// #region 模型选择器
+const modelNameOptions = ref<string[]>([])
+const selectorLoading = ref<boolean>(false)
+
+function handleFetchModels() {
+  if (!formData.value.baseUrl) {
+    ElMessage.warning("请先填写请求地址")
+    return
+  }
+  selectorLoading.value = true
+  // 后端获取失败时返回空列表，此时仍可手动输入；编辑模式 apiKey 留空时，后端通过 id 查库取原值
+  fetchModelOptionsApi({
+    id: formData.value.id,
+    baseUrl: formData.value.baseUrl,
+    apiKey: formData.value.apiKey
+  }).then(({ data }) => {
+    modelNameOptions.value = data
+    if (data.length) {
+      ElMessage.success(`获取成功，共 ${data.length} 个模型`)
+    } else {
+      ElMessage.warning("未获取到模型列表，请检查请求地址与 API KEY，或手动输入")
+    }
+  }).finally(() => {
+    selectorLoading.value = false
+  })
 }
 // #endregion
 
@@ -258,7 +287,21 @@ onMounted(() => {
           />
         </el-form-item>
         <el-form-item prop="modelName" label="模型名称">
-          <el-input v-model="formData.modelName" placeholder="如 gpt-4o-mini" maxlength="64" />
+          <div class="model-name-wrapper">
+            <el-select
+              v-model="formData.modelName"
+              placeholder="如 gpt-4o-mini，可手动输入"
+              filterable
+              allow-create
+              default-first-option
+              :loading="selectorLoading"
+            >
+              <el-option v-for="item in modelNameOptions" :key="item" :label="item" :value="item" />
+            </el-select>
+            <el-tooltip content="获取模型列表" placement="top">
+              <el-button :icon="RefreshRight" :loading="selectorLoading" @click="handleFetchModels" />
+            </el-tooltip>
+          </div>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -294,5 +337,14 @@ onMounted(() => {
 .pager-wrapper {
   display: flex;
   justify-content: flex-end;
+}
+
+.model-name-wrapper {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  .el-select {
+    flex: 1;
+  }
 }
 </style>

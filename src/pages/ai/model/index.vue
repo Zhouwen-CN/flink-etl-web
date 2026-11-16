@@ -22,7 +22,9 @@ const DEFAULT_FORM_DATA: CreateOrUpdateModelRequestData = {
   format: undefined,
   baseUrl: undefined,
   apiKey: undefined,
-  modelName: undefined
+  modelName: undefined,
+  contextWindow: undefined,
+  supportImage: false
 }
 
 const dialogVisible = ref<boolean>(false)
@@ -30,6 +32,14 @@ const dialogVisible = ref<boolean>(false)
 const formRef = useTemplateRef("formRef")
 
 const formData = ref<CreateOrUpdateModelRequestData>(cloneDeep(DEFAULT_FORM_DATA))
+
+// 上下文窗口快捷选项
+const CONTEXT_WINDOW_OPTIONS = [
+  { label: "128k", value: 128 * 1024 },
+  { label: "256k", value: 256 * 1024 },
+  { label: "512k", value: 512 * 1024 },
+  { label: "1M", value: 1024 * 1024 }
+]
 
 const formRules: FormRules<CreateOrUpdateModelRequestData> = {
   name: [{ required: true, trigger: "blur", message: "请输入模型唯一标识" }],
@@ -56,6 +66,10 @@ function handleCreateOrUpdate() {
     const form = { ...formData.value }
     if (form.id !== undefined && !form.apiKey) {
       delete form.apiKey
+    }
+    // 输入非法数字时 v-model.number 会得到原始字符串，此时不提交该字段
+    if (typeof form.contextWindow !== "number") {
+      delete form.contextWindow
     }
     const api = form.id === undefined ? createModelApi : updateModelApi
     api(form).then(() => {
@@ -137,6 +151,8 @@ function handleTest(row: TableData) {
 function handleUpdate(row: TableData) {
   dialogVisible.value = true
   formData.value = cloneDeep(row)
+  // 后端未返回值时的兜底显示
+  formData.value.supportImage = row.supportImage ?? false
 }
 // #endregion
 
@@ -230,6 +246,18 @@ onMounted(() => {
           </el-table-column>
           <el-table-column prop="modelName" label="模型名称" align="center" />
           <el-table-column prop="baseUrl" label="请求地址" align="center" show-overflow-tooltip />
+          <el-table-column label="上下文窗口" align="center">
+            <template #default="scope">
+              {{ scope.row.contextWindow ?? '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column label="支持图片" align="center">
+            <template #default="scope">
+              <el-tag :type="scope.row.supportImage ? 'success' : 'info'">
+                {{ scope.row.supportImage ? "是" : "否" }}
+              </el-tag>
+            </template>
+          </el-table-column>
           <el-table-column prop="updateTime" label="更新时间" align="center" />
           <el-table-column fixed="right" label="操作" width="220" align="center">
             <template #default="scope">
@@ -303,6 +331,22 @@ onMounted(() => {
             </el-tooltip>
           </div>
         </el-form-item>
+        <el-form-item prop="contextWindow" label="上下文窗口">
+          <div class="context-window-wrapper">
+            <el-input v-model.number="formData.contextWindow" placeholder="请输入数值，留空则使用默认值" clearable />
+            <el-link
+              v-for="option in CONTEXT_WINDOW_OPTIONS"
+              :key="option.label"
+              type="primary"
+              @click="formData.contextWindow = option.value"
+            >
+              {{ option.label }}
+            </el-link>
+          </div>
+        </el-form-item>
+        <el-form-item prop="supportImage" label="支持图片">
+          <el-switch v-model="formData.supportImage" />
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">
@@ -345,6 +389,26 @@ onMounted(() => {
   width: 100%;
   .el-select {
     flex: 1;
+  }
+}
+
+.context-window-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+
+  .el-input {
+    flex: 1;
+  }
+
+  .el-link {
+    flex-shrink: 0;
+    font-size: 12px;
+
+    + .el-link {
+      margin-left: 8px;
+    }
   }
 }
 </style>

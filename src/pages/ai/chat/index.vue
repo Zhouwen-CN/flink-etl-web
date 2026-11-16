@@ -4,14 +4,14 @@ import type { BubbleProps } from "vue-element-plus-x/types/Bubble"
 import type { BubbleListInstance } from "vue-element-plus-x/types/BubbleList"
 import type { FilesCardProps } from "vue-element-plus-x/types/FilesCard"
 import type { ThinkingStatus } from "vue-element-plus-x/types/Thinking"
-import type { ChatMessage, DoneAttributes, ModelOptionVO } from "./api/types"
+import type { BotOptionVO, ChatMessage, DoneAttributes } from "./api/types"
 import { useTheme } from "@@/composables/useTheme"
 import { computed, nextTick, ref, watch } from "vue"
 import { Attachments, BubbleList, Sender, Thinking, XMarkdown } from "vue-element-plus-x"
 import { useRoute, useRouter } from "vue-router"
 import { createConversationApi, getConversationMessageListApi, streamChat } from "./api"
+import BotSelect from "./components/BotSelect/index.vue"
 import FilesSelect from "./components/FilesSelect/index.vue"
-import ModelSelect from "./components/ModelSelect/index.vue"
 import SessionSidebar from "./components/SessionSidebar/index.vue"
 import WelecomeText from "./components/WelecomeText/index.vue"
 import { usePasteFiles } from "./hooks/usePasteFiles"
@@ -80,8 +80,11 @@ const { handlePaste } = usePasteFiles(addFiles)
 // 会话侧栏组件引用：创建会话后调用其 refresh() 刷新会话列表
 const sidebarRef = ref<InstanceType<typeof SessionSidebar> | null>(null)
 
-// 当前选中的模型
-const currentModel = ref<ModelOptionVO | null>(null)
+// 当前选中的 Bot
+const currentBot = ref<BotOptionVO | null>(null)
+
+// Bot 选择器组件引用：打开会话时根据会话的 botId 同步选中 Bot
+const botSelectRef = ref<InstanceType<typeof BotSelect> | null>(null)
 
 // 代码块主题跟随当前项目主题（黑暗/深蓝 → dark，默认 → light）
 // XMarkdown 通过 default-theme-mode 切换 body.dark 并同步 shiki 高亮主题
@@ -131,6 +134,9 @@ watch(
       bubbleListRef.value?.scrollToBottom()
     }, 350)
 
+    // 打开已有会话：根据会话的 botId 同步当前选中的 Bot
+    syncCurrentBot()
+
     // 新创建的会话：发送暂存的第一条消息
     if (pendingMessage.value) {
       const message = pendingMessage.value
@@ -141,6 +147,23 @@ watch(
   { immediate: true }
 )
 
+// 根据当前会话的 botId，把 Bot 选择器同步到会话对应的 Bot
+function syncCurrentBot() {
+  const id = sessionId.value
+  if (!id)
+    return
+  const conversations = sidebarRef.value?.sessionList ?? []
+  const conversation = conversations.find(item => item.id === Number(id))
+  if (!conversation)
+    return
+  const bot = botSelectRef.value?.botList.find(item => item.value === conversation.botId)
+  if (bot)
+    currentBot.value = bot
+}
+
+// 会话列表异步加载完成后再同步一次（打开页面直达会话时，列表可能晚于 sessionId watch 就绪）
+watch(() => sidebarRef.value?.sessionList, syncCurrentBot)
+
 // Sender 统一提交入口：无会话先创建会话（内容由 watch 中 pendingMessage 触发发送），有会话直接 SSE 发送
 async function handleSend() {
   const content = inputValue.value
@@ -150,15 +173,15 @@ async function handleSend() {
   if (!route.query?.sessionId) {
     // 开启新聊天：先创建会话（后端要调大模型生成标题，耗时较长，Sender 置为 loading），
     // 拿到会话 id 才能调用 chat 接口
-    if (!currentModel.value) {
-      ElMessage.warning("请先选择模型")
+    if (!currentBot.value) {
+      ElMessage.warning("请先选择 Bot")
       return
     }
     pendingMessage.value = content
     inputValue.value = ""
     isLoading.value = true
     try {
-      const vo = await createConversationApi({ modelId: currentModel.value.value, message: content })
+      const vo = await createConversationApi({ botId: currentBot.value.value, message: content })
       // 刷新侧栏会话列表
       sidebarRef.value?.refresh()
       // 跳转聊天页（query 携带会话id，保持 path 不变，tags-view 只保留一个标签），
@@ -210,8 +233,8 @@ function finishLastMessage(attributes?: DoneAttributes) {
 }
 
 async function startSSE(chatContent: string) {
-  if (!currentModel.value) {
-    ElMessage.warning("请先选择模型")
+  if (!currentBot.value) {
+    ElMessage.warning("请先选择 Bot")
     return
   }
 
@@ -229,7 +252,7 @@ async function startSSE(chatContent: string) {
   try {
     await streamChat(
       {
-        modelId: currentModel.value.value,
+        botId: currentBot.value.value,
         conversationId: Number(sessionId.value),
         message: chatContent
       },
@@ -428,7 +451,7 @@ watch(
             <template #prefix>
               <div class="sender-prefix">
                 <FilesSelect @select="addFiles" />
-                <ModelSelect v-model="currentModel" />
+                <BotSelect ref="botSelectRef" v-model="currentBot" />
               </div>
             </template>
           </Sender>

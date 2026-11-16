@@ -1,17 +1,17 @@
 import type {
+  BotOptionVO,
   ChatMessage,
   ChatStreamCallbacks,
   ChatStreamDTO,
   ConversationVO,
   CreateConversationDTO,
   DoneAttributes,
-  ModelOptionVO,
   ResponseVO
 } from "./types"
 /**
  * AI 聊天模块 API（对接 flink-etl-api 后端 AiChatController）
  *
- * 包含：会话管理、模型选择器、聊天 SSE 流式接口
+ * 包含：会话管理、Bot 选择器、聊天 SSE 流式接口
  */
 import { getToken } from "@@/utils/local-storage"
 import { request } from "@/http/axios"
@@ -51,11 +51,11 @@ export function renameConversationApi(id: number | string, title: string) {
   return request<ResponseVO<null>>({ url: "/ai/chat/conversation", method: "patch", data: { id, title } })
 }
 
-// ============================== 模型 ==============================
+// ============================== Bot ==============================
 
-/** 模型选择器 */
-export function getModelListApi() {
-  return request<ResponseVO<ModelOptionVO[]>>({ url: "/ai/chat/model/selector", method: "get" })
+/** Bot 选择器 */
+export function getBotListApi() {
+  return request<ResponseVO<BotOptionVO[]>>({ url: "/ai/chat/bot/selector", method: "get" })
     .then(res => res.data)
 }
 

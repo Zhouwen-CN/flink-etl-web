@@ -1,32 +1,32 @@
-<!-- 切换模型 -->
+<!-- 切换 Bot -->
 <script setup lang="ts">
-import type { ModelOptionVO } from "../../api/types"
+import type { BotOptionVO } from "../../api/types"
 import SvgModels from "@@/assets/icons/models.svg?component"
 import { computed, onMounted, ref } from "vue"
-import { getModelListApi } from "../../api"
+import { getBotListApi } from "../../api"
 import Popover from "../Popover/index.vue"
 
-// v-model：当前选中的模型（由父组件 AI Chat 页面持有，发送消息时读取）
-const model = defineModel<ModelOptionVO | null>({ default: null })
+// v-model：当前选中的 Bot（由父组件 AI Chat 页面持有，发送消息时读取）
+const bot = defineModel<BotOptionVO | null>({ default: null })
 
-// 模型列表（本组件私有数据，首次获取后默认选中第一个）
-const modelList = ref<ModelOptionVO[]>([])
+// Bot 列表（本组件私有数据，首次获取后默认选中第一个）
+const botList = ref<BotOptionVO[]>([])
 
-async function requestModelList() {
+async function requestBotList() {
   try {
-    modelList.value = await getModelListApi()
-    if (!model.value)
-      model.value = modelList.value[0] ?? null
+    botList.value = await getBotListApi()
+    if (!bot.value)
+      bot.value = botList.value[0] ?? null
   } catch (error) {
-    console.error("requestModelList错误:", error)
+    console.error("requestBotList错误:", error)
   }
 }
 
 onMounted(() => {
-  requestModelList()
+  requestBotList()
 })
 
-const currentModelName = computed(() => model.value?.label ?? "")
+const currentBotName = computed(() => bot.value?.label ?? "")
 
 /* 弹出面板 开始 */
 const popoverStyle = ref({
@@ -42,19 +42,21 @@ const popoverRef = ref()
 
 // 显示
 async function showPopover() {
-  // 获取最新的模型列表
-  await requestModelList()
+  // 获取最新的 Bot 列表
+  await requestBotList()
 }
 
 // 点击
-function handleClick(item: ModelOptionVO) {
-  model.value = item
+function handleClick(item: BotOptionVO) {
+  bot.value = item
   popoverRef.value?.hide?.()
 }
+
+defineExpose({ botList })
 </script>
 
 <template>
-  <div class="model-select">
+  <div class="bot-select">
     <Popover
       ref="popoverRef"
       placement="top-start"
@@ -66,25 +68,25 @@ function handleClick(item: ModelOptionVO) {
     >
       <!-- 触发元素插槽 -->
       <template #trigger>
-        <div class="model-select-box">
-          <div class="model-select-box-icon">
+        <div class="bot-select-box">
+          <div class="bot-select-box-icon">
             <SvgModels class="models-icon" />
           </div>
-          <div class="model-select-box-text">
-            {{ currentModelName }}
+          <div class="bot-select-box-text">
+            {{ currentBotName }}
           </div>
         </div>
       </template>
 
       <div class="popover-content-box">
         <div
-          v-for="item in modelList"
+          v-for="item in botList"
           :key="item.value"
           class="popover-content-box-items"
         >
           <div
             class="popover-content-box-item"
-            :class="{ 'is-select': item.value === model?.value }"
+            :class="{ 'is-select': item.value === bot?.value }"
             @click="handleClick(item)"
           >
             {{ item.label }}
@@ -96,7 +98,7 @@ function handleClick(item: ModelOptionVO) {
 </template>
 
 <style scoped lang="scss">
-.model-select-box {
+.bot-select-box {
   display: flex;
   gap: 4px;
   align-items: center;
@@ -114,7 +116,7 @@ function handleClick(item: ModelOptionVO) {
     height: 12px;
   }
 
-  .model-select-box-text {
+  .bot-select-box-text {
     font-size: 12px;
   }
 }

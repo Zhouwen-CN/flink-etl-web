@@ -21,19 +21,20 @@ export interface PageVO<T = unknown> {
 /** AiConversationVO，会话视图对象 */
 export interface ConversationVO {
   id: number
+  botId: number
   title: string
 }
 
 /** AiConversationCreateForm，新增会话表单 */
 export interface CreateConversationDTO {
-  modelId: number
+  botId: number
   message: string
 }
 
-// ============================== 模型 ==============================
+// ============================== Bot ==============================
 
-/** DictionaryVO，模型选择器项（label 为展示名，value 为模型 ID） */
-export interface ModelOptionVO {
+/** DictionaryVO，Bot 选择器项（label 为展示名，value 为 Bot ID） */
+export interface BotOptionVO {
   label: string
   value: number
 }
@@ -76,7 +77,7 @@ export type ChatMessage = UserMessage | AiMessageVO
 
 /** AiChatForm，聊天（SSE 流式）请求体 */
 export interface ChatStreamDTO {
-  modelId: number
+  botId: number
   conversationId: number
   message: string
 }

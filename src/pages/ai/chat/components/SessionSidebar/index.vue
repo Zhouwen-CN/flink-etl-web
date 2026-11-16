@@ -127,8 +127,9 @@ function handleMenuCommand(command: ConversationMenuCommand, item: ConversationI
   }
 }
 
-// 供父组件（AI Chat 页面）在创建会话后调用，刷新会话列表
-defineExpose({ refresh: fetchSessionList })
+// 供父组件（AI Chat 页面）在创建会话后调用，刷新会话列表；
+// 同时暴露会话列表，供父组件根据会话的 botId 同步当前选中的 Bot
+defineExpose({ refresh: fetchSessionList, sessionList })
 </script>
 
 <template>

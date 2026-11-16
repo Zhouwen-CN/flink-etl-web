@@ -265,6 +265,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           title: "模型管理",
           roles: ["admin"]
         }
+      },
+      {
+        path: "bot",
+        component: () => import("@/pages/ai/bot/index.vue"),
+        name: "AIBot",
+        meta: {
+          title: "Bot 管理",
+          roles: ["admin"]
+        }
       }
     ]
   },

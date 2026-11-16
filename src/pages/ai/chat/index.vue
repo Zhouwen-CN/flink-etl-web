@@ -4,7 +4,7 @@ import type { BubbleProps } from "vue-element-plus-x/types/Bubble"
 import type { BubbleListInstance } from "vue-element-plus-x/types/BubbleList"
 import type { FilesCardProps } from "vue-element-plus-x/types/FilesCard"
 import type { ThinkingStatus } from "vue-element-plus-x/types/Thinking"
-import type { BotOptionVO, ChatMessage, DoneAttributes } from "./api/types"
+import type { BotOptionVO, ChatMessage, DoneAttributes, UserImageContent } from "./api/types"
 import { useTheme } from "@@/composables/useTheme"
 import { computed, nextTick, ref, watch } from "vue"
 import { Attachments, BubbleList, Sender, Thinking, XMarkdown } from "vue-element-plus-x"
@@ -26,6 +26,8 @@ type MessageItem = BubbleProps & {
   inputToken?: number
   outputToken?: number
   totalToken?: number
+  /** 用户消息携带的图片（data URL） */
+  images?: string[]
 }
 
 const USER_AVATAR = "https://avatars.githubusercontent.com/u/76239030?v=4"
@@ -272,7 +274,7 @@ async function startSSE(chatContent: string, images: string[] = []) {
 
   // 清空输入框
   inputValue.value = ""
-  addMessage(chatContent, true)
+  addMessage(chatContent, true, images)
   addMessage("", false)
 
   // 这里有必要调用一下 BubbleList 组件的滚动到底部 手动触发 自动滚动
@@ -307,7 +309,7 @@ async function startSSE(chatContent: string, images: string[] = []) {
     // 用户主动中断不提示
     if ((err as Error)?.name !== "AbortError") {
       console.error("Fetch error:", err)
-      ElMessage.error("聊天服务异常")
+      ElMessage.error((err as Error)?.message || "聊天服务异常")
       finishLastMessage()
     }
   } finally {
@@ -322,16 +324,32 @@ function cancelSSE() {
   abortController?.abort()
 }
 
+/** 把图片内容块转为 data URL（兼容后端直接返回带 data: 前缀的情况） */
+function imageToDataUrl(image: UserImageContent["image"]): string {
+  if (!image?.base64Data)
+    return ""
+  return image.base64Data.startsWith("data:")
+    ? image.base64Data
+    : `data:${image.mimeType || "image/png"};base64,${image.base64Data}`
+}
+
 /** 把后端历史消息（USER/AI JSON）映射为气泡数据 */
 function mapHistoryMessage(message: ChatMessage, index: number): MessageItem {
   if (message.type === "USER") {
+    const contents = message.contents ?? []
+    const text = contents.filter(item => item.type === "TEXT").map(item => item.text).join("")
+    const images = contents
+      .filter(item => item.type === "IMAGE")
+      .map(item => imageToDataUrl(item.image))
+      .filter(Boolean)
     return {
       key: index,
       avatar: USER_AVATAR,
       avatarSize: "32px",
       role: "user",
       placement: "end",
-      content: (message.contents ?? []).map(item => item.text).join(""),
+      content: text,
+      images: images.length ? images : undefined,
       noStyle: false
     }
   }
@@ -351,7 +369,7 @@ function mapHistoryMessage(message: ChatMessage, index: number): MessageItem {
 }
 
 // 添加消息 - 维护聊天记录
-function addMessage(message: string, isUser: boolean) {
+function addMessage(message: string, isUser: boolean, images: string[] = []) {
   const obj: MessageItem = {
     key: bubbleItems.value.length,
     avatar: isUser ? USER_AVATAR : AI_AVATAR,
@@ -361,6 +379,7 @@ function addMessage(message: string, isUser: boolean) {
     isMarkdown: !isUser,
     loading: !isUser,
     content: message || "",
+    images: isUser && images.length ? images : undefined,
     reasoning_content: "",
     thinkingStatus: "start",
     thinlCollapse: false,
@@ -421,10 +440,25 @@ watch(
               v-if="item.content && item.role === 'ai'" :markdown="item.content" class="markdown-body"
               :themes="{ light: 'github-light', dark: 'github-dark' }" :default-theme-mode="codeThemeMode"
             />
-            <!-- user 内容 纯文本 -->
-            <div v-if="item.content && item.role === 'user'" class="user-content">
-              {{ item.content }}
-            </div>
+            <!-- user 内容 纯文本 + 图片 -->
+            <template v-if="item.role === 'user'">
+              <div v-if="item.content" class="user-content">
+                {{ item.content }}
+              </div>
+              <div v-if="item.images?.length" class="user-images">
+                <el-image
+                  v-for="(url, imgIndex) in item.images"
+                  :key="imgIndex"
+                  :src="url"
+                  :preview-src-list="item.images"
+                  :initial-index="imgIndex"
+                  fit="cover"
+                  preview-teleported
+                  hide-on-click-modal
+                  class="user-image"
+                />
+              </div>
+            </template>
           </template>
 
           <template #footer="{ item }">
@@ -636,6 +670,21 @@ watch(
   .user-content {
     // 换行
     white-space: pre-wrap;
+  }
+
+  // 用户消息图片列表
+  .user-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+
+    .user-image {
+      width: 120px;
+      height: 120px;
+      cursor: pointer;
+      border-radius: 8px;
+    }
   }
 
   // token 统计小字，跟随主题文字色

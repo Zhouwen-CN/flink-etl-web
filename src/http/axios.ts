@@ -5,7 +5,7 @@ import { get, merge } from "lodash-es"
 import { useUserStore } from "@/pinia/stores/user"
 
 /** 退出登录并强制刷新页面（会重定向到登录页） */
-function logout() {
+export function logout() {
   useUserStore().logout()
   location.reload()
 }

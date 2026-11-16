@@ -41,11 +41,24 @@ export interface BotOptionVO {
 
 // ============================== 消息 ==============================
 
-/** 用户消息内容块 */
-export interface UserMessageContent {
+/** 用户消息文本内容块 */
+export interface UserTextContent {
   text: string
   type: "TEXT"
 }
+
+/** 用户消息图片内容块，如 {"image":{"base64Data":"xxx","mimeType":"image/png"},"type":"IMAGE"} */
+export interface UserImageContent {
+  image: {
+    base64Data: string
+    mimeType: string
+  }
+  detailLevel?: "LOW" | "HIGH" | "AUTO"
+  type: "IMAGE"
+}
+
+/** 用户消息内容块（文本 / 图片） */
+export type UserMessageContent = UserTextContent | UserImageContent
 
 /** 用户消息（历史记录），如 {"contents":[{"text":"你好","type":"TEXT"}],"type":"USER"} */
 export interface UserMessage {

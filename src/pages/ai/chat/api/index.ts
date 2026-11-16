@@ -14,7 +14,7 @@ import type {
  * 包含：会话管理、Bot 选择器、聊天 SSE 流式接口
  */
 import { getToken } from "@@/utils/local-storage"
-import { request } from "@/http/axios"
+import { logout, request } from "@/http/axios"
 
 // ============================== 会话 ==============================
 
@@ -123,6 +123,21 @@ export async function streamChat(data: ChatStreamDTO, callbacks: ChatStreamCallb
     body: JSON.stringify(data),
     signal
   })
+
+  // 业务异常/未认证时后端返回的是 ResponseVO JSON（HTTP 统一 200，自定义 code），而非 SSE 流，
+  // 直接解析出错误信息抛出，避免静默失败
+  const contentType = response.headers.get("content-type") ?? ""
+  if (contentType.includes("application/json")) {
+    const vo = JSON.parse(await response.text()) as ResponseVO<unknown>
+    // code 401：token 过期/校验失败，与 axios 响应拦截器保持一致，退出登录并跳转登录页
+    if (vo.code === 401) {
+      logout()
+      return
+    }
+    // code 非 200：抛出后端错误信息
+    if (vo.code !== 200)
+      throw new Error(vo.message || `聊天请求失败: ${vo.code}`)
+  }
 
   if (!response.ok || !response.body)
     throw new Error(`聊天请求失败: ${response.status}`)

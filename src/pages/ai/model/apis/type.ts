@@ -13,6 +13,10 @@ export interface CreateOrUpdateModelRequestData {
   apiKey?: string
   /** 模型名称，如 gpt-4o-mini */
   modelName?: string
+  /** 上下文窗口 */
+  contextWindow?: number
+  /** 是否支持图片 */
+  supportImage?: boolean
 }
 
 export interface TableRequestData {
@@ -32,6 +36,10 @@ export interface TableData {
   format: ModelFormat
   baseUrl: string
   modelName: string
+  /** 上下文窗口 */
+  contextWindow?: number
+  /** 是否支持图片 */
+  supportImage?: boolean
   updateTime: string
 }
 

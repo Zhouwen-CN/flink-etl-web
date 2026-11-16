@@ -1,4 +1,4 @@
-<!-- 文件上传 -->
+<!-- 图片选择 -->
 <script setup lang="ts">
 import { ref } from "vue"
 
@@ -33,7 +33,7 @@ function onFileChange(e: Event) {
       type="file"
       class="hidden-input"
       multiple
-      accept="image/*,video/*,audio/*,application/*"
+      accept="image/*"
       @change="onFileChange"
     >
     <div class="trigger-btn" @click="open">

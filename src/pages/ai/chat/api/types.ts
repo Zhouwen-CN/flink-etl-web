@@ -80,6 +80,8 @@ export interface ChatStreamDTO {
   botId: number
   conversationId: number
   message: string
+  /** 图片列表（base64，支持 data:image/png;base64,xxx 格式） */
+  images?: string[]
 }
 
 /** SSE 流式回调 */

@@ -1,4 +1,4 @@
-// 粘贴图片/文件（如截图）自动加入附件列表
+// 粘贴图片（如截图）自动加入附件列表（暂时仅支持图片）
 
 /**
  * 用法：在 Sender 上绑定原生粘贴事件
@@ -18,7 +18,8 @@ export function usePasteFiles(addFiles: (files: File[]) => void) {
       const item = items[i]
       if (item.kind === "file") {
         const file = item.getAsFile()
-        if (file)
+        // 暂时仅支持图片
+        if (file && file.type.startsWith("image/"))
           files.push(file)
       } else if (item.kind === "string") {
         hasText = true

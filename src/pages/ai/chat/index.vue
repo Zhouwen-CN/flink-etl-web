@@ -45,10 +45,14 @@ type ChatFileItem = FilesCardProps & {
 const filesList = ref<ChatFileItem[]>([])
 
 // 把原生 File 转成附件卡片项，追加到列表（选择文件、粘贴截图都走这里）
+// 暂时仅支持图片附件
 function addFiles(files: File[]) {
-  if (!files.length)
+  const images = files.filter(file => file.type.startsWith("image/"))
+  if (images.length < files.length)
+    ElMessage.warning("暂时仅支持图片附件")
+  if (!images.length)
     return
-  const items = files.map(file =>
+  const items = images.map(file =>
     ({
       uid: crypto.randomUUID(), // 不写 uid，文件列表展示不出来，elx 1.2.0 bug 待修复
       name: file.name,
@@ -137,11 +141,11 @@ watch(
     // 打开已有会话：根据会话的 botId 同步当前选中的 Bot
     syncCurrentBot()
 
-    // 新创建的会话：发送暂存的第一条消息
+    // 新创建的会话：发送暂存的第一条消息（附件列表里的图片仍属于该条消息，在此一并取出）
     if (pendingMessage.value) {
       const message = pendingMessage.value
       pendingMessage.value = ""
-      startSSE(message)
+      startSSE(message, await takeImagePayload())
     }
   },
   { immediate: true }
@@ -195,7 +199,8 @@ async function handleSend() {
     }
     return
   }
-  startSSE(content)
+  const images = await takeImagePayload()
+  startSSE(content, images)
 }
 
 // SSE 流式回调：思考链 / 正文 / 结束 / 错误
@@ -232,7 +237,34 @@ function finishLastMessage(attributes?: DoneAttributes) {
   last.typing = false
 }
 
-async function startSSE(chatContent: string) {
+/** File 转 base64 data URL（data:image/png;base64,xxx） */
+function fileToDataURL(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
+
+/** 取出附件列表中的图片并转为 base64 data URL，随后清空附件列表 */
+async function takeImagePayload(): Promise<string[]> {
+  if (!filesList.value.length)
+    return []
+  const files = filesList.value.map(item => item.file)
+  try {
+    return await Promise.all(files.map(fileToDataURL))
+  } finally {
+    // 无论转换成功与否，都回收预览地址并清空附件列表
+    filesList.value.forEach((item) => {
+      if (item.url)
+        URL.revokeObjectURL(item.url)
+    })
+    filesList.value = []
+  }
+}
+
+async function startSSE(chatContent: string, images: string[] = []) {
   if (!currentBot.value) {
     ElMessage.warning("请先选择 Bot")
     return
@@ -254,7 +286,8 @@ async function startSSE(chatContent: string) {
       {
         botId: currentBot.value.value,
         conversationId: Number(sessionId.value),
-        message: chatContent
+        message: chatContent,
+        images: images.length ? images : undefined
       },
       {
         onThinking: handleThinkingChunk,

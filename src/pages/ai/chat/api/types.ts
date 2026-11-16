@@ -66,25 +66,49 @@ export interface UserMessage {
   type: "USER"
 }
 
+/** AI 发起的工具调用请求，如 {"id":"chatcmpl-tool-xxx","name":"add","arguments":"{\"a\": 1, \"b\": 2}"} */
+export interface ToolExecutionRequest {
+  id: string
+  name: string
+  /** 原始 JSON 参数字符串 */
+  arguments: string
+}
+
+/** 工具执行结果消息，如 {"id":"chatcmpl-tool-xxx","toolName":"add","contents":[{"text":"3","type":"TEXT"}],"isError":false,"type":"TOOL_EXECUTION_RESULT"} */
+export interface ToolExecutionResult {
+  id: string
+  toolName: string
+  contents: { text: string, type: "TEXT" }[]
+  isError?: boolean
+  attributes?: Record<string, unknown>
+  type: "TOOL_EXECUTION_RESULT"
+}
+
 /** AI 消息（历史记录 / SSE delta 数据） */
 export interface AiMessageVO {
   text?: string
   thinking?: string
-  toolExecutionRequests?: unknown[]
+  toolExecutionRequests?: ToolExecutionRequest[]
   attributes?: Record<string, unknown>
   type: "AI"
 }
 
+/** 系统消息（历史记录中可能出现，前端不渲染） */
+export interface SystemMessage {
+  text?: string
+  attributes?: Record<string, unknown>
+  type: "SYSTEM"
+}
+
 /** SSE done 事件的 attributes */
 export interface DoneAttributes {
-  rawMessage?: string
   inputToken?: number
   outputToken?: number
   totalToken?: number
 }
 
-/** 历史消息（用户 / AI） */
-export type ChatMessage = UserMessage | AiMessageVO
+/** 历史消息（用户 / AI / 工具执行结果 / 系统消息） */
+export type ChatMessage = UserMessage | AiMessageVO | ToolExecutionResult | SystemMessage
 
 // ============================== 聊天请求 ==============================
 
@@ -101,6 +125,10 @@ export interface ChatStreamDTO {
 export interface ChatStreamCallbacks {
   onThinking?: (text: string) => void
   onText?: (text: string) => void
+  /** tool 事件：AI 发起工具调用（含该轮 thinking 与 toolExecutionRequests） */
+  onToolRequest?: (message: AiMessageVO) => void
+  /** tool 事件：工具执行结果 */
+  onToolResult?: (result: ToolExecutionResult) => void
   onDone?: (attributes: DoneAttributes) => void
   onError?: (message: string) => void
 }

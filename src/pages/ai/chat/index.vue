@@ -4,7 +4,7 @@ import type { BubbleProps } from "vue-element-plus-x/types/Bubble"
 import type { BubbleListInstance } from "vue-element-plus-x/types/BubbleList"
 import type { FilesCardProps } from "vue-element-plus-x/types/FilesCard"
 import type { ThinkingStatus } from "vue-element-plus-x/types/Thinking"
-import type { BotOptionVO, ChatMessage, DoneAttributes, UserImageContent } from "./api/types"
+import type { AiMessageVO, BotOptionVO, ChatMessage, DoneAttributes, ToolExecutionRequest, ToolExecutionResult, UserImageContent } from "./api/types"
 import { useTheme } from "@@/composables/useTheme"
 import { computed, nextTick, ref, watch } from "vue"
 import { Attachments, BubbleList, Sender, Thinking, XMarkdown } from "vue-element-plus-x"
@@ -16,13 +16,19 @@ import SessionSidebar from "./components/SessionSidebar/index.vue"
 import WelecomeText from "./components/WelecomeText/index.vue"
 import { usePasteFiles } from "./hooks/usePasteFiles"
 
+/** 思考链内容片段：思考文本 / 工具调用记录（可折叠卡片） */
+interface ThinkingTextPart { kind: "text", text: string }
+interface ThinkingToolPart { kind: "tool", id: string, name: string, arguments: string, result?: string, isError?: boolean }
+type ThinkingPart = ThinkingTextPart | ThinkingToolPart
+
 type MessageItem = BubbleProps & {
   key: number
   role: "ai" | "user"
   avatar: string
   thinkingStatus?: ThinkingStatus
   thinlCollapse?: boolean
-  reasoning_content?: string
+  /** 思考链内容片段（思考文本 + 工具调用，按发生顺序排列） */
+  thinkingParts?: ThinkingPart[]
   inputToken?: number
   outputToken?: number
   totalToken?: number
@@ -129,7 +135,7 @@ watch(
     // 加载会话历史消息并回显
     try {
       const messages = await getConversationMessageListApi(Number(id))
-      bubbleItems.value = messages.map(mapHistoryMessage)
+      bubbleItems.value = mapHistoryMessages(messages)
     } catch (error) {
       console.error("getConversationMessageList错误:", error)
       bubbleItems.value = []
@@ -206,6 +212,46 @@ async function handleSend() {
 }
 
 // SSE 流式回调：思考链 / 正文 / 结束 / 错误
+
+/** 向思考链追加思考文本（与相邻文本片段合并，保持片段数量最少） */
+function appendThinkingDelta(item: MessageItem, text: string) {
+  const parts = (item.thinkingParts ??= [])
+  const lastPart = parts[parts.length - 1]
+  if (lastPart?.kind === "text")
+    lastPart.text += text
+  else
+    parts.push({ kind: "text", text })
+}
+
+/** 追加整段思考文本（tool 事件携带整轮完整 thinking，delta 已流式输出的不重复追加） */
+function appendThinkingFull(item: MessageItem, text: string) {
+  if (!text)
+    return
+  const joined = (item.thinkingParts ?? []).filter(part => part.kind === "text").map(part => part.text).join("")
+  if (!joined.includes(text))
+    appendThinkingDelta(item, text)
+}
+
+/** 向思考链追加工具调用请求（可折叠卡片） */
+function addToolRequests(item: MessageItem, requests?: ToolExecutionRequest[]) {
+  const parts = (item.thinkingParts ??= [])
+  for (const req of requests ?? [])
+    parts.push({ kind: "tool", id: req.id, name: req.name, arguments: req.arguments })
+}
+
+/** 按工具调用 id 回填执行结果 */
+function setToolResult(item: MessageItem, result: ToolExecutionResult) {
+  const parts = item.thinkingParts ?? []
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const part = parts[i]
+    if (part.kind === "tool" && part.id === result.id && part.result === undefined) {
+      part.result = (result.contents ?? []).filter(content => content.type === "TEXT").map(content => content.text).join("")
+      part.isError = result.isError
+      return
+    }
+  }
+}
+
 function handleThinkingChunk(text: string) {
   const last = bubbleItems.value[bubbleItems.value.length - 1]
   if (!last)
@@ -213,7 +259,35 @@ function handleThinkingChunk(text: string) {
   last.thinkingStatus = "thinking"
   last.loading = true
   last.thinlCollapse = true
-  last.reasoning_content = (last.reasoning_content ?? "") + text
+  appendThinkingDelta(last, text)
+}
+
+/** SSE tool 事件：AI 发起工具调用，记录到思考链（可折叠展示） */
+function handleToolRequest(message: AiMessageVO) {
+  const last = bubbleItems.value[bubbleItems.value.length - 1]
+  if (!last)
+    return
+  last.thinkingStatus = "thinking"
+  last.loading = true
+  last.thinlCollapse = true
+  appendThinkingFull(last, message.thinking ?? "")
+  addToolRequests(last, message.toolExecutionRequests)
+}
+
+/** SSE tool 事件：工具执行结果 */
+function handleToolResult(result: ToolExecutionResult) {
+  const last = bubbleItems.value[bubbleItems.value.length - 1]
+  if (!last)
+    return
+  setToolResult(last, result)
+}
+
+/** Thinking 组件 content prop：思考文本汇总（content-wrapper 的渲染条件，实际渲染由 #content 插槽接管） */
+function thinkingContent(item: MessageItem): string {
+  return (item.thinkingParts ?? [])
+    .filter(part => part.kind === "text")
+    .map(part => part.text)
+    .join("") || " "
 }
 
 function handleTextChunk(text: string) {
@@ -294,6 +368,8 @@ async function startSSE(chatContent: string, images: string[] = []) {
       {
         onThinking: handleThinkingChunk,
         onText: handleTextChunk,
+        onToolRequest: handleToolRequest,
+        onToolResult: handleToolResult,
         onDone: attributes => finishLastMessage(attributes),
         onError: (message) => {
           ElMessage.error(message || "聊天服务异常")
@@ -333,39 +409,65 @@ function imageToDataUrl(image: UserImageContent["image"]): string {
     : `data:${image.mimeType || "image/png"};base64,${image.base64Data}`
 }
 
-/** 把后端历史消息（USER/AI JSON）映射为气泡数据 */
-function mapHistoryMessage(message: ChatMessage, index: number): MessageItem {
-  if (message.type === "USER") {
-    const contents = message.contents ?? []
-    const text = contents.filter(item => item.type === "TEXT").map(item => item.text).join("")
-    const images = contents
-      .filter(item => item.type === "IMAGE")
-      .map(item => imageToDataUrl(item.image))
-      .filter(Boolean)
-    return {
-      key: index,
-      avatar: USER_AVATAR,
-      avatarSize: "32px",
-      role: "user",
-      placement: "end",
-      content: text,
-      images: images.length ? images : undefined,
-      noStyle: false
+/** 把后端历史消息（USER/AI/工具执行结果 JSON）映射为气泡数据 */
+function mapHistoryMessages(messages: ChatMessage[]): MessageItem[] {
+  const items: MessageItem[] = []
+  for (const message of messages) {
+    // 系统消息不渲染
+    if (message.type === "SYSTEM")
+      continue
+    // 工具执行结果：回填到上一条 AI 气泡的思考链
+    if (message.type === "TOOL_EXECUTION_RESULT") {
+      const last = items[items.length - 1]
+      if (last?.role === "ai")
+        setToolResult(last, message)
+      continue
+    }
+    if (message.type === "USER") {
+      const contents = message.contents ?? []
+      const text = contents.filter(item => item.type === "TEXT").map(item => item.text).join("")
+      const images = contents
+        .filter(item => item.type === "IMAGE")
+        .map(item => imageToDataUrl(item.image))
+        .filter(Boolean)
+      items.push({
+        key: items.length,
+        avatar: USER_AVATAR,
+        avatarSize: "32px",
+        role: "user",
+        placement: "end",
+        content: text,
+        images: images.length ? images : undefined,
+        noStyle: false
+      })
+    } else {
+      const last = items[items.length - 1]
+      // 同一轮的连续 AI 消息（工具调用前的思考 + 最终回复）压缩为一条气泡
+      const item: MessageItem = last?.role === "ai"
+        ? last
+        : {
+            key: items.length,
+            avatar: AI_AVATAR,
+            avatarSize: "32px",
+            role: "ai",
+            placement: "start",
+            isMarkdown: true,
+            content: "",
+            thinkingParts: [],
+            thinkingStatus: "end",
+            thinlCollapse: false,
+            noStyle: true
+          }
+      if (last?.role !== "ai")
+        items.push(item)
+      if (message.thinking)
+        appendThinkingDelta(item, message.thinking)
+      addToolRequests(item, message.toolExecutionRequests)
+      if (message.text)
+        item.content = (item.content ?? "") + message.text
     }
   }
-  return {
-    key: index,
-    avatar: AI_AVATAR,
-    avatarSize: "32px",
-    role: "ai",
-    placement: "start",
-    isMarkdown: true,
-    content: message.text ?? "",
-    reasoning_content: message.thinking ?? "",
-    thinkingStatus: "end",
-    thinlCollapse: false,
-    noStyle: true
-  }
+  return items
 }
 
 // 添加消息 - 维护聊天记录
@@ -380,7 +482,7 @@ function addMessage(message: string, isUser: boolean, images: string[] = []) {
     loading: !isUser,
     content: message || "",
     images: isUser && images.length ? images : undefined,
-    reasoning_content: "",
+    thinkingParts: [],
     thinkingStatus: "start",
     thinlCollapse: false,
     noStyle: !isUser
@@ -428,10 +530,39 @@ watch(
         >
           <template #header="{ item }">
             <Thinking
-              v-if="item.reasoning_content" v-model="item.thinlCollapse" :content="item.reasoning_content"
+              v-if="item.thinkingParts?.length" v-model="item.thinlCollapse"
+              :content="thinkingContent(item)"
               :status="item.thinkingStatus" class="thinking-chain-warp"
-              color="var(--el-text-color-regular)" background-color="var(--el-fill-color-light)" @change="handleChange"
-            />
+              @change="handleChange"
+            >
+              <template #content>
+                <div class="thinking-parts">
+                  <template v-for="(part, partIndex) in item.thinkingParts" :key="partIndex">
+                    <div v-if="part.kind === 'text'" class="thinking-text">
+                      {{ part.text }}
+                    </div>
+                    <el-collapse v-else class="thinking-tools">
+                      <el-collapse-item :name="part.id">
+                        <template #title>
+                          <span class="tool-title" :class="{ 'is-error': part.isError }">
+                            {{ part.isError ? "❌" : "🔧" }} 工具调用：{{ part.name }}({{ part.arguments }})
+                          </span>
+                        </template>
+                        <div v-if="part.result !== undefined" class="tool-result" :class="{ 'is-error': part.isError }">
+                          {{ part.isError ? "❌" : "✅" }} 执行结果：{{ part.result }}
+                        </div>
+                        <div v-else class="tool-result">
+                          <el-icon class="is-loading">
+                            <Loading />
+                          </el-icon>
+                          执行中...
+                        </div>
+                      </el-collapse-item>
+                    </el-collapse>
+                  </template>
+                </div>
+              </template>
+            </Thinking>
           </template>
 
           <template #content="{ item }">
@@ -570,6 +701,65 @@ watch(
 
   .thinking-chain-warp {
     margin-bottom: 12px;
+  }
+}
+
+// 思考链自定义内容（#content 插槽接管渲染，替代库内纯文本 pre），
+// 原库内样式挂在 pre 上（背景/圆角/内边距），自定义插槽需自行补齐
+.thinking-parts {
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--el-text-color-regular);
+  background-color: var(--el-fill-color-light);
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: calc(var(--el-border-radius-base) + 4px);
+
+  .thinking-text {
+    white-space: pre-wrap;
+  }
+
+  // 工具调用折叠卡片
+  .thinking-tools {
+    margin: 4px 0;
+
+    &:first-child {
+      margin-top: 0;
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .tool-title {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      font-size: 13px;
+      color: var(--el-text-color-regular);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      &.is-error {
+        color: var(--el-color-danger);
+      }
+    }
+
+    .tool-result {
+      padding-bottom: 8px;
+      font-size: 13px;
+      color: var(--el-text-color-secondary);
+      white-space: pre-wrap;
+
+      &.is-error {
+        color: var(--el-color-danger);
+      }
+
+      .is-loading {
+        margin-right: 4px;
+        vertical-align: -2px;
+      }
+    }
   }
 }
 

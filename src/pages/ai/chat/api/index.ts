@@ -1,4 +1,5 @@
 import type {
+  AiMessageVO,
   BotOptionVO,
   ChatMessage,
   ChatStreamCallbacks,
@@ -6,7 +7,8 @@ import type {
   ConversationVO,
   CreateConversationDTO,
   DoneAttributes,
-  ResponseVO
+  ResponseVO,
+  ToolExecutionResult
 } from "./types"
 /**
  * AI 聊天模块 API（对接 flink-etl-api 后端 AiChatController）
@@ -85,6 +87,14 @@ function handleBlock(block: string, callbacks: ChatStreamCallbacks) {
           callbacks.onText?.(msg.text)
         break
       }
+      case "tool": {
+        const msg = JSON.parse(data) as AiMessageVO | ToolExecutionResult
+        if (msg.type === "TOOL_EXECUTION_RESULT")
+          callbacks.onToolResult?.(msg)
+        else if (msg.type === "AI")
+          callbacks.onToolRequest?.(msg)
+        break
+      }
       case "done": {
         const msg = JSON.parse(data) as { attributes?: Record<string, unknown> }
         callbacks.onDone?.((msg.attributes ?? {}) as DoneAttributes)
@@ -106,7 +116,8 @@ function handleBlock(block: string, callbacks: ChatStreamCallbacks) {
  *
  * SSE 事件：
  * - delta：AI 消息片段（thinking 或 text 字段）
- * - done：最终元数据（attributes.rawMessage / inputToken / outputToken / totalToken）
+ * - tool：工具调用（AI 消息含 toolExecutionRequests / 工具执行结果 TOOL_EXECUTION_RESULT）
+ * - done：最终元数据（attributes.inputToken / outputToken / totalToken）
  * - error：错误信息（纯文本）
  *
  * 用 fetch + ReadableStream 手动解析（POST 请求无法用 EventSource），

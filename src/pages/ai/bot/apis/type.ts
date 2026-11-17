@@ -17,6 +17,8 @@ export interface CreateOrUpdateBotRequestData {
   status?: boolean
   /** 归属部门id */
   deptId?: number
+  /** 工具ID列表 */
+  toolIds?: number[]
 }
 
 export interface TableRequestData {
@@ -70,3 +72,17 @@ export interface DeptVO {
 }
 
 export type DeptSelectorResponseData = ApiResponseData<DeptVO[]>
+
+/** MCP选择器树节点（服务节点 -> 工具叶子） */
+export interface McpSelectorNodeData {
+  /** 工具节点为工具id，服务节点为 server-{id} */
+  value: number | string
+  /** 服务节点为服务名，工具节点为工具名 */
+  label: string
+  children: McpSelectorNodeData[]
+}
+
+export type McpSelectorResponseData = ApiResponseData<McpSelectorNodeData[]>
+
+/** 工具ID列表（根据bot ID查询，用作回显） */
+export type ToolIdsResponseData = ApiResponseData<number[]>

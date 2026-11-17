@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type { FormRules } from "element-plus"
-import type { CreateOrUpdateBotRequestData, DeptVO, ModelSelectorOptionData, TableData } from "./apis/type"
+import type { CreateOrUpdateBotRequestData, DeptVO, McpSelectorNodeData, ModelSelectorOptionData, TableData } from "./apis/type"
 import { usePagination } from "@@/composables/usePagination"
 import { CirclePlus, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
-import { createBotApi, deleteBotApi, getBotPageApi, getDeptSelectorDataApi, getModelSelectorApi, updateBotApi } from "./apis/index"
+import { createBotApi, deleteBotApi, getBotPageApi, getBotToolIdsApi, getDeptSelectorDataApi, getMcpSelectorApi, getModelSelectorApi, updateBotApi } from "./apis/index"
 
 const loading = ref<boolean>(false)
 
@@ -16,6 +16,8 @@ const modelMap = ref<Map<number, string>>(new Map<number, string>())
 
 const deptTreeData = ref<DeptVO[]>([])
 
+const mcpTreeData = ref<McpSelectorNodeData[]>([])
+
 function getSelectors() {
   getModelSelectorApi().then(({ data }) => {
     modelOptions.value = data
@@ -23,6 +25,9 @@ function getSelectors() {
   })
   getDeptSelectorDataApi().then(({ data }) => {
     deptTreeData.value = data
+  })
+  getMcpSelectorApi().then(({ data }) => {
+    mcpTreeData.value = data
   })
 }
 // #endregion
@@ -37,7 +42,8 @@ const DEFAULT_FORM_DATA: CreateOrUpdateBotRequestData = {
   maxToolCalls: 100,
   systemPrompt: undefined,
   status: true,
-  deptId: undefined
+  deptId: undefined,
+  toolIds: []
 }
 
 const dialogVisible = ref<boolean>(false)
@@ -61,6 +67,8 @@ function handleCreateOrUpdate() {
     }
     loading.value = true
     const form = { ...formData.value }
+    // 工具ID列表仅保留工具叶子节点（服务节点value为 server-{id} 字符串，勾选服务节点即全选其下工具）
+    form.toolIds = (form.toolIds ?? []).filter((v): v is number => typeof v === "number")
     // 温度/Top-P 开关关闭时不提交对应字段（后端忽略 null，保留原值）
     if (!temperatureEnabled.value) {
       delete form.temperature
@@ -119,6 +127,11 @@ function handleUpdate(row: TableData) {
   formData.value.topP = row.topP ?? 0.7
   temperatureEnabled.value = row.temperature !== undefined && row.temperature !== null
   topPEnabled.value = row.topP !== undefined && row.topP !== null
+  // 工具ID列表：先清空，再根据bot ID查询回显
+  formData.value.toolIds = []
+  getBotToolIdsApi(row.id).then(({ data }) => {
+    formData.value.toolIds = data
+  })
 }
 // #endregion
 
@@ -282,6 +295,24 @@ onMounted(() => {
               label: 'name',
               children: 'children',
             }"
+          />
+        </el-form-item>
+        <el-form-item prop="toolIds" label="工具列表">
+          <el-tree-select
+            v-model="formData.toolIds"
+            :data="mcpTreeData"
+            node-key="value"
+            multiple
+            show-checkbox
+            collapse-tags
+            collapse-tags-tooltip
+            :max-collapse-tags="2"
+            placeholder="请选择"
+            :props="{
+              label: 'label',
+              children: 'children',
+            }"
+            style="width: 100%"
           />
         </el-form-item>
         <el-form-item prop="temperature" label="温度">

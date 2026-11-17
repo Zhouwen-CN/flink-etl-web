@@ -44,6 +44,22 @@ export function getModelSelectorApi() {
   })
 }
 
+/** MCP选择器（树形：服务节点 -> 工具叶子） */
+export function getMcpSelectorApi() {
+  return request<Bot.McpSelectorResponseData>({
+    url: "ai/bot/mcp/selector",
+    method: "get"
+  })
+}
+
+/** 工具ID列表（根据bot ID查询，用作回显） */
+export function getBotToolIdsApi(id: number) {
+  return request<Bot.ToolIdsResponseData>({
+    url: `ai/bot/tool/${id}`,
+    method: "get"
+  })
+}
+
 /** 部门树选择器 */
 export function getDeptSelectorDataApi() {
   return request<Bot.DeptSelectorResponseData>({

@@ -34,7 +34,7 @@ const DEFAULT_FORM_DATA: CreateOrUpdateBotRequestData = {
   modelId: undefined,
   temperature: 0.7,
   topP: 0.7,
-  maxToolCalls: 20,
+  maxToolCalls: 100,
   systemPrompt: undefined,
   status: true,
   deptId: undefined
@@ -49,7 +49,8 @@ const formData = ref<CreateOrUpdateBotRequestData>(cloneDeep(DEFAULT_FORM_DATA))
 const formRules: FormRules<CreateOrUpdateBotRequestData> = {
   name: [{ required: true, trigger: "blur", message: "请输入bot名称" }],
   modelId: [{ required: true, trigger: "change", message: "请选择模型" }],
-  deptId: [{ required: true, trigger: "change", message: "请选择归属部门" }]
+  deptId: [{ required: true, trigger: "change", message: "请选择归属部门" }],
+  maxToolCalls: [{ required: true, trigger: "change", message: "请选择最大工具调用次数" }]
 }
 
 function handleCreateOrUpdate() {

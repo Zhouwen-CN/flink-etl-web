@@ -52,7 +52,8 @@ const formRules: FormRules<CreateOrUpdateModelRequestData> = {
       formData.value.id === undefined && !value ? callback(new Error("请输入 API KEY")) : callback()
     }
   }],
-  modelName: [{ required: true, trigger: "blur", message: "请输入模型名称" }]
+  modelName: [{ required: true, trigger: "blur", message: "请输入模型名称" }],
+  contextWindow: [{ required: true, trigger: "change", message: "请选择上下文窗口" }]
 }
 
 function handleCreateOrUpdate() {

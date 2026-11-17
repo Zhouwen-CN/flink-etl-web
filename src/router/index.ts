@@ -274,6 +274,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           title: "Bot 管理",
           roles: ["admin"]
         }
+      },
+      {
+        path: "mcp",
+        component: () => import("@/pages/ai/mcp/index.vue"),
+        name: "AIMcp",
+        meta: {
+          title: "MCP 服务",
+          roles: ["admin"]
+        }
       }
     ]
   },

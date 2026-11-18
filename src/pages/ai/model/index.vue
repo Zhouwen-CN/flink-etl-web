@@ -11,6 +11,9 @@ import { createModelApi, deleteModelApi, fetchModelOptionsApi, getModelPageApi, 
 // 接口格式下拉（字典 ai_api_format）
 const { dictData: formatOptions, dictMap: formatMap, run: getFormatOptions } = useDictionary(getDictionaryDataApi)
 
+// 模型类型下拉（字典 ai_model_type）
+const { dictData: typeOptions, dictMap: typeMap, run: getTypeOptions } = useDictionary(getDictionaryDataApi)
+
 const loading = ref<boolean>(false)
 
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
@@ -19,7 +22,8 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 const DEFAULT_FORM_DATA: CreateOrUpdateModelRequestData = {
   id: undefined,
   name: undefined,
-  format: undefined,
+  format: 1,
+  type: 1,
   baseUrl: undefined,
   apiKey: undefined,
   modelName: undefined,
@@ -44,6 +48,7 @@ const CONTEXT_WINDOW_OPTIONS = [
 const formRules: FormRules<CreateOrUpdateModelRequestData> = {
   name: [{ required: true, trigger: "blur", message: "请输入模型唯一标识" }],
   format: [{ required: true, trigger: "change", message: "请选择接口格式" }],
+  type: [{ required: true, trigger: "change", message: "请选择模型类型" }],
   baseUrl: [{ required: true, trigger: "blur", message: "请输入请求地址" }],
   // 修改时留空表示不修改，仅在新增时必填
   apiKey: [{
@@ -55,6 +60,14 @@ const formRules: FormRules<CreateOrUpdateModelRequestData> = {
   modelName: [{ required: true, trigger: "blur", message: "请输入模型名称" }],
   contextWindow: [{ required: true, trigger: "change", message: "请选择上下文窗口" }]
 }
+
+// 仅模型类型为 1 时使用接口格式，隐藏时清空已选值
+watch(() => formData.value.type, (type) => {
+  if (type !== 1) {
+    formData.value.format = undefined
+    formRef.value?.clearValidate("format")
+  }
+})
 
 function handleCreateOrUpdate() {
   formRef.value?.validate((valid: boolean) => {
@@ -199,6 +212,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
 
 onMounted(() => {
   getFormatOptions("ai_api_format")
+  getTypeOptions("ai_model_type")
 })
 </script>
 
@@ -238,8 +252,13 @@ onMounted(() => {
         </div>
       </div>
       <div class="table-wrapper">
-        <el-table :data="tableData">
+        <el-table :data="tableData" show-overflow-tooltip>
           <el-table-column prop="name" label="模型标识" align="center" />
+          <el-table-column prop="type" label="模型类型" align="center">
+            <template #default="scope">
+              {{ typeMap.get(scope.row.type) || '-' }}
+            </template>
+          </el-table-column>
           <el-table-column label="接口格式" align="center">
             <template #default="scope">
               {{ formatMap.get(scope.row.format) || '-' }}
@@ -299,7 +318,12 @@ onMounted(() => {
         <el-form-item prop="name" label="模型标识">
           <el-input v-model="formData.name" placeholder="请输入" maxlength="64" />
         </el-form-item>
-        <el-form-item prop="format" label="接口格式">
+        <el-form-item prop="type" label="模型类型">
+          <el-select v-model="formData.type" placeholder="请选择" style="width: 100%">
+            <el-option v-for="item in typeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-if="formData.type === 1" prop="format" label="接口格式">
           <el-select v-model="formData.format" placeholder="请选择" style="width: 100%">
             <el-option v-for="item in formatOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>

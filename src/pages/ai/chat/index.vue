@@ -6,6 +6,7 @@ import type { FilesCardProps } from "vue-element-plus-x/types/FilesCard"
 import type { ThinkingStatus } from "vue-element-plus-x/types/Thinking"
 import type { AiMessageVO, BotOptionVO, ChatMessage, DoneAttributes, ToolExecutionRequest, ToolExecutionResult, UserImageContent } from "./api/types"
 import { useTheme } from "@@/composables/useTheme"
+import { Tools } from "@element-plus/icons-vue"
 import { computed, nextTick, ref, watch } from "vue"
 import { Attachments, BubbleList, Sender, Thinking, XMarkdown } from "vue-element-plus-x"
 import { useRoute, useRouter } from "vue-router"
@@ -290,6 +291,17 @@ function thinkingContent(item: MessageItem): string {
     .join("") || " "
 }
 
+/** 工具调用参数/结果展示：是 JSON 则格式化缩进，否则原样输出 */
+function formatToolContent(content?: string): string {
+  if (content === undefined)
+    return ""
+  try {
+    return JSON.stringify(JSON.parse(content), null, 2)
+  } catch {
+    return content
+  }
+}
+
 function handleTextChunk(text: string) {
   const last = bubbleItems.value[bubbleItems.value.length - 1]
   if (!last)
@@ -545,11 +557,23 @@ watch(
                       <el-collapse-item :name="part.id">
                         <template #title>
                           <span class="tool-title" :class="{ 'is-error': part.isError }">
-                            {{ part.isError ? "❌" : "🔧" }} 工具调用：{{ part.name }}({{ part.arguments }})
+                            <el-icon class="tool-icon">
+                              <Tools />
+                            </el-icon>
+                            {{ part.name }}
                           </span>
+                          <el-tag
+                            size="small"
+                            class="tool-status"
+                            :type="part.result === undefined ? 'info' : (part.isError ? 'danger' : 'success')"
+                          >
+                            {{ part.result === undefined ? "执行中" : (part.isError ? "失败" : "成功") }}
+                          </el-tag>
                         </template>
-                        <div v-if="part.result !== undefined" class="tool-result" :class="{ 'is-error': part.isError }">
-                          {{ part.isError ? "❌" : "✅" }} 执行结果：{{ part.result }}
+                        <div v-if="part.result !== undefined" class="tool-result">
+                          <el-scrollbar max-height="200px">
+                            <pre class="tool-block">{{ formatToolContent(part.result) }}</pre>
+                          </el-scrollbar>
                         </div>
                         <div v-else class="tool-result">
                           <el-icon class="is-loading">
@@ -717,6 +741,7 @@ watch(
 
   .thinking-text {
     white-space: pre-wrap;
+    overflow-wrap: anywhere;
   }
 
   // 工具调用折叠卡片
@@ -734,22 +759,29 @@ watch(
     .tool-title {
       flex: 1;
       min-width: 0;
+      display: inline-flex;
+      align-items: center;
       overflow: hidden;
       font-size: 13px;
       color: var(--el-text-color-regular);
       text-overflow: ellipsis;
       white-space: nowrap;
 
-      &.is-error {
-        color: var(--el-color-danger);
+      .tool-icon {
+        margin-right: 4px;
+        margin-left: 4px;
       }
+    }
+
+    .tool-status {
+      flex-shrink: 0;
+      margin-left: 12px;
     }
 
     .tool-result {
       padding-bottom: 8px;
       font-size: 13px;
       color: var(--el-text-color-secondary);
-      white-space: pre-wrap;
 
       &.is-error {
         color: var(--el-color-danger);
@@ -758,6 +790,24 @@ watch(
       .is-loading {
         margin-right: 4px;
         vertical-align: -2px;
+      }
+    }
+
+    .tool-block {
+      margin: 0 0 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      line-height: 1.6;
+      color: var(--el-text-color-regular);
+      background-color: var(--el-fill-color);
+      border-radius: 4px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+
+      &.is-error {
+        color: var(--el-color-danger);
+        background-color: var(--el-color-danger-light-9);
       }
     }
   }

@@ -304,6 +304,7 @@ onMounted(() => {
             node-key="value"
             multiple
             show-checkbox
+            filterable
             collapse-tags
             collapse-tags-tooltip
             :max-collapse-tags="2"

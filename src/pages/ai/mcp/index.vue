@@ -31,11 +31,10 @@ const originalConfigJson = ref<string>("")
 const CONFIG_JSON_PLACEHOLDER = [
   "请输入 MCP 连接配置 JSON（仅支持远程传输），例如：",
   "{",
-  "  \"mcpServers\": {",
-  "    \"http-example\": {",
-  "      \"type\": \"http\",",
-  "      \"url\": \"https://example.com/mcp\"",
-  "    }",
+  "  \"type\": \"http\",",
+  "  \"url\": \"https://example.com/mcp\",",
+  "  \"headers\": {",
+  "    \"Authorization\": \"Bearer YOUR_TOKEN\"",
   "  }",
   "}"
 ].join("\n")

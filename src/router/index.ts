@@ -252,15 +252,16 @@ export const dynamicRoutes: RouteRecordRaw[] = [
       {
         path: "chat",
         component: () => import("@/pages/ai/chat/index.vue"),
-        name: "AIChat",
+        name: "chat",
         meta: {
-          title: "AI 对话"
+          title: "AI 对话",
+          keepAlive: true
         }
       },
       {
         path: "model",
         component: () => import("@/pages/ai/model/index.vue"),
-        name: "AIModel",
+        name: "model",
         meta: {
           title: "模型管理",
           roles: ["admin"]
@@ -269,7 +270,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
       {
         path: "bot",
         component: () => import("@/pages/ai/bot/index.vue"),
-        name: "AIBot",
+        name: "bot",
         meta: {
           title: "Bot 管理",
           roles: ["admin"]
@@ -278,7 +279,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
       {
         path: "mcp",
         component: () => import("@/pages/ai/mcp/index.vue"),
-        name: "AIMcp",
+        name: "mcp",
         meta: {
           title: "MCP 服务",
           roles: ["admin"]
@@ -287,7 +288,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
       {
         path: "vectordb",
         component: () => import("@/pages/ai/vectordb/index.vue"),
-        name: "AIVectorDatabase",
+        name: "vectordb",
         meta: {
           title: "向量数据库",
           roles: ["admin"]
@@ -296,7 +297,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
       {
         path: "knowledge",
         component: () => import("@/pages/ai/knowledge/index.vue"),
-        name: "AIKnowledge",
+        name: "knowledge",
         meta: {
           title: "知识库",
           roles: ["admin"]

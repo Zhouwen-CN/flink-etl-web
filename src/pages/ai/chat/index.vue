@@ -17,6 +17,9 @@ import SessionSidebar from "./components/SessionSidebar/index.vue"
 import WelecomeText from "./components/WelecomeText/index.vue"
 import { usePasteFiles } from "./hooks/usePasteFiles"
 
+/* eslint-disable vue/component-definition-name-casing */
+defineOptions({ name: "chat" })
+
 /** 思考链内容片段：思考文本 / 工具调用记录（可折叠卡片） */
 interface ThinkingTextPart { kind: "text", text: string }
 interface ThinkingToolPart { kind: "tool", id: string, name: string, arguments: string, result?: string, isError?: boolean }

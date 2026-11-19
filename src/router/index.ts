@@ -283,6 +283,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           title: "MCP 服务",
           roles: ["admin"]
         }
+      },
+      {
+        path: "vectordb",
+        component: () => import("@/pages/ai/vectordb/index.vue"),
+        name: "AIVectorDatabase",
+        meta: {
+          title: "向量数据库",
+          roles: ["admin"]
+        }
       }
     ]
   },

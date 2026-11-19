@@ -292,6 +292,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           title: "向量数据库",
           roles: ["admin"]
         }
+      },
+      {
+        path: "knowledge",
+        component: () => import("@/pages/ai/knowledge/index.vue"),
+        name: "AIKnowledge",
+        meta: {
+          title: "知识库",
+          roles: ["admin"]
+        }
       }
     ]
   },

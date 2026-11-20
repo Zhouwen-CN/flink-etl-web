@@ -281,14 +281,14 @@ onMounted(() => {
           <el-table-column prop="updateTime" label="更新时间" align="center" />
           <el-table-column fixed="right" label="操作" width="220" align="center">
             <template #default="scope">
-              <el-button type="success" text bg size="small" :loading="testLoadingId === scope.row.id" @click="handleTest(scope.row)">
-                测试
-              </el-button>
               <el-button type="primary" text bg size="small" @click="handleUpdate(scope.row)">
                 修改
               </el-button>
               <el-button type="danger" text bg size="small" @click="handleDelete(scope.row)">
                 删除
+              </el-button>
+              <el-button type="success" text bg size="small" :loading="testLoadingId === scope.row.id" @click="handleTest(scope.row)">
+                测试
               </el-button>
             </template>
           </el-table-column>

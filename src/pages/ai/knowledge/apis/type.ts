@@ -11,6 +11,10 @@ export interface CreateKnowledgeRequestData {
   recallTopK?: number
   /** 相似度下限，0~1（默认0.20） */
   minScore?: number
+  /** 单个分块的最大字符数，50~10000（默认800） */
+  chunkSize?: number
+  /** 相邻分块的重叠字符数，0~2000（默认200，须小于chunkSize） */
+  overlapSize?: number
 }
 
 export interface UpdateKnowledgeRequestData {
@@ -24,6 +28,10 @@ export interface UpdateKnowledgeRequestData {
   recallTopK?: number
   /** 相似度下限，0~1（默认0.20） */
   minScore?: number
+  /** 单个分块的最大字符数，50~10000（默认800） */
+  chunkSize?: number
+  /** 相邻分块的重叠字符数，0~2000（默认200，须小于chunkSize） */
+  overlapSize?: number
 }
 
 export interface TableRequestData {
@@ -44,8 +52,6 @@ export interface TableData {
   description: string
   /** 向量数据库id */
   vectorDbId: number
-  /** 向量库集合名/索引名 */
-  collectionName: string
   /** Embedding模型id */
   embedModelId: number
   /** 向量维度 */
@@ -54,6 +60,10 @@ export interface TableData {
   recallTopK: number
   /** 相似度下限，0~1 */
   minScore: number
+  /** 单个分块的最大字符数 */
+  chunkSize: number
+  /** 相邻分块的重叠字符数 */
+  overlapSize: number
   /** 更新时间 */
   updateTime: string
 }
@@ -62,11 +72,3 @@ export type TableResponseData = ApiResponseData<{
   list: TableData[]
   total: number
 }>
-
-/** 选择器选项 */
-export interface SelectorItem {
-  /** 标签 */
-  label: string
-  /** 值 */
-  value: number
-}

@@ -302,6 +302,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           title: "知识库",
           roles: ["admin"]
         }
+      },
+      {
+        path: "doc",
+        component: () => import("@/pages/ai/doc/index.vue"),
+        name: "doc",
+        meta: {
+          title: "知识库文档",
+          roles: ["admin"]
+        }
       }
     ]
   },

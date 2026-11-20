@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { FormRules } from "element-plus"
-import type { CreateKnowledgeRequestData, SelectorItem, TableData, UpdateKnowledgeRequestData } from "./apis/type"
+import type { CreateKnowledgeRequestData, TableData, UpdateKnowledgeRequestData } from "./apis/type"
+import type { DictionaryData } from "@/common/apis/dict/type"
 import { usePagination } from "@@/composables/usePagination"
 import { CirclePlus, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
@@ -12,8 +13,8 @@ const loading = ref<boolean>(false)
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 
 // #region 选择器数据
-const vectorDbOptions = ref<SelectorItem[]>([])
-const embedModelOptions = ref<SelectorItem[]>([])
+const vectorDbOptions = ref<DictionaryData[]>([])
+const embedModelOptions = ref<DictionaryData[]>([])
 
 const vectorDbMap = computed(() => new Map(vectorDbOptions.value.map(item => [item.value, item.label])))
 const embedModelMap = computed(() => new Map(embedModelOptions.value.map(item => [item.value, item.label])))
@@ -36,7 +37,9 @@ const DEFAULT_FORM_DATA: CreateKnowledgeRequestData & { id?: number } = {
   vectorDbId: undefined as unknown as number,
   embedModelId: undefined as unknown as number,
   recallTopK: 5,
-  minScore: 0.2
+  minScore: 0.2,
+  chunkSize: 800,
+  overlapSize: 200
 }
 
 const dialogVisible = ref<boolean>(false)
@@ -53,7 +56,9 @@ const formRules = computed<FormRules<CreateKnowledgeRequestData & { id?: number 
   vectorDbId: [{ required: !isEdit.value, trigger: "change", message: "请选择向量数据库" }],
   embedModelId: [{ required: !isEdit.value, trigger: "change", message: "请选择嵌入模型" }],
   recallTopK: [{ trigger: "change", validator: validateRecallTopK }],
-  minScore: [{ trigger: "change", validator: validateMinScore }]
+  minScore: [{ trigger: "change", validator: validateMinScore }],
+  chunkSize: [{ trigger: "change", validator: validateChunkSize }],
+  overlapSize: [{ trigger: "change", validator: validateOverlapSize }]
 }))
 
 function validateRecallTopK(_rule: unknown, value: number | undefined, callback: (error?: Error) => void) {
@@ -80,6 +85,34 @@ function validateMinScore(_rule: unknown, value: number | undefined, callback: (
   }
 }
 
+function validateChunkSize(_rule: unknown, value: number | undefined, callback: (error?: Error) => void) {
+  if (value === undefined || value === null) {
+    callback()
+    return
+  }
+  if (!Number.isInteger(value) || value < 50 || value > 10000) {
+    callback(new Error("分块大小须为 50~10000 的整数"))
+  } else {
+    callback()
+  }
+}
+
+function validateOverlapSize(_rule: unknown, value: number | undefined, callback: (error?: Error) => void) {
+  if (value === undefined || value === null) {
+    callback()
+    return
+  }
+  if (!Number.isInteger(value) || value < 0 || value > 2000) {
+    callback(new Error("重叠大小须为 0~2000 的整数"))
+    return
+  }
+  if (formData.value.chunkSize !== undefined && formData.value.chunkSize !== null && value >= formData.value.chunkSize) {
+    callback(new Error("重叠大小须小于分块大小"))
+  } else {
+    callback()
+  }
+}
+
 function handleCreateOrUpdate() {
   formRef.value?.validate((valid: boolean) => {
     if (!valid) {
@@ -93,7 +126,9 @@ function handleCreateOrUpdate() {
         name: formData.value.name,
         description: formData.value.description,
         recallTopK: formData.value.recallTopK,
-        minScore: formData.value.minScore
+        minScore: formData.value.minScore,
+        chunkSize: formData.value.chunkSize,
+        overlapSize: formData.value.overlapSize
       } satisfies UpdateKnowledgeRequestData)
       : createKnowledgeApi({
           name: formData.value.name,
@@ -101,7 +136,9 @@ function handleCreateOrUpdate() {
           vectorDbId: formData.value.vectorDbId,
           embedModelId: formData.value.embedModelId,
           recallTopK: formData.value.recallTopK,
-          minScore: formData.value.minScore
+          minScore: formData.value.minScore,
+          chunkSize: formData.value.chunkSize,
+          overlapSize: formData.value.overlapSize
         })
     requestPromise.then(() => {
       ElMessage.success("操作成功")
@@ -144,7 +181,9 @@ function handleUpdate(row: TableData) {
     vectorDbId: row.vectorDbId,
     embedModelId: row.embedModelId,
     recallTopK: row.recallTopK,
-    minScore: row.minScore
+    minScore: row.minScore,
+    chunkSize: row.chunkSize,
+    overlapSize: row.overlapSize
   }
 }
 // #endregion
@@ -235,7 +274,6 @@ onMounted(() => {
               {{ vectorDbMap.get(scope.row.vectorDbId) || '-' }}
             </template>
           </el-table-column>
-          <el-table-column prop="collectionName" label="集合名/索引名" align="center" show-overflow-tooltip />
           <el-table-column prop="embedModelId" label="嵌入模型" align="center" show-overflow-tooltip>
             <template #default="scope">
               {{ embedModelMap.get(scope.row.embedModelId) || '-' }}
@@ -244,6 +282,8 @@ onMounted(() => {
           <el-table-column prop="dimension" label="向量维度" align="center" width="90" />
           <el-table-column prop="recallTopK" label="最大召回" align="center" width="90" />
           <el-table-column prop="minScore" label="相似度下限" align="center" width="100" />
+          <el-table-column prop="chunkSize" label="分块大小" align="center" width="90" />
+          <el-table-column prop="overlapSize" label="重叠大小" align="center" width="90" />
           <el-table-column prop="updateTime" label="更新时间" align="center" />
           <el-table-column fixed="right" label="操作" width="150" align="center">
             <template #default="scope">
@@ -299,6 +339,12 @@ onMounted(() => {
         </el-form-item>
         <el-form-item prop="minScore" label="相似度下限">
           <el-input-number v-model="formData.minScore" :min="0" :max="1" :step="0.05" :precision="2" controls-position="right" style="width: 100%" />
+        </el-form-item>
+        <el-form-item prop="chunkSize" label="分块大小">
+          <el-input-number v-model="formData.chunkSize" :min="50" :max="10000" :step="100" step-strictly controls-position="right" style="width: 100%" />
+        </el-form-item>
+        <el-form-item prop="overlapSize" label="重叠大小">
+          <el-input-number v-model="formData.overlapSize" :min="0" :max="2000" :step="50" step-strictly controls-position="right" style="width: 100%" />
         </el-form-item>
       </el-form>
       <template #footer>

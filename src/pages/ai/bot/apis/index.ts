@@ -60,6 +60,22 @@ export function getBotToolIdsApi(id: number) {
   })
 }
 
+/** 知识库选择器 */
+export function getKnowledgeSelectorApi() {
+  return request<Bot.KnowledgeSelectorResponseData>({
+    url: "ai/bot/knowledge/selector",
+    method: "get"
+  })
+}
+
+/** 知识库ID列表（根据bot ID查询，用作回显） */
+export function getBotKnowledgeIdsApi(id: number) {
+  return request<Bot.KnowledgeIdsResponseData>({
+    url: `ai/bot/knowledge/${id}`,
+    method: "get"
+  })
+}
+
 /** 部门树选择器 */
 export function getDeptSelectorDataApi() {
   return request<Bot.DeptSelectorResponseData>({

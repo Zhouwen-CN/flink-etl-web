@@ -202,7 +202,7 @@ async function handleSend() {
       sidebarRef.value?.refresh()
       // 跳转聊天页（query 携带会话id，保持 path 不变，tags-view 只保留一个标签），
       // loading 由 watch 中触发的 startSSE 接管
-      router.replace({ name: "AIChat", query: { sessionId: `${vo.id}` } })
+      router.replace({ name: "chat", query: { sessionId: `${vo.id}` } })
     } catch (error) {
       console.error("createSession错误:", error)
       isLoading.value = false

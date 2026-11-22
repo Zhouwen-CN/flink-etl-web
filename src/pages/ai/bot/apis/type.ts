@@ -19,6 +19,8 @@ export interface CreateOrUpdateBotRequestData {
   deptId?: number
   /** 工具ID列表 */
   toolIds?: number[]
+  /** 关联知识库ID列表 */
+  knowledgeIds?: number[]
 }
 
 export interface TableRequestData {
@@ -86,3 +88,14 @@ export type McpSelectorResponseData = ApiResponseData<McpSelectorNodeData[]>
 
 /** 工具ID列表（根据bot ID查询，用作回显） */
 export type ToolIdsResponseData = ApiResponseData<number[]>
+
+/** 知识库选择器选项 */
+export interface KnowledgeSelectorOptionData {
+  label: string
+  value: number
+}
+
+export type KnowledgeSelectorResponseData = ApiResponseData<KnowledgeSelectorOptionData[]>
+
+/** 知识库ID列表（根据bot ID查询，用作回显） */
+export type KnowledgeIdsResponseData = ApiResponseData<number[]>

@@ -42,6 +42,7 @@ export interface TableData {
   /** 模型类型 */
   type?: ModelType
   baseUrl: string
+  apiKey: string
   modelName: string
   /** 上下文窗口 */
   contextWindow?: number

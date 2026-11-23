@@ -133,9 +133,9 @@ defineExpose({
         </div>
       </div>
       <div class="table-wrapper">
-        <el-table :data="tableData">
-          <el-table-column prop="name" label="工具名" align="center" show-overflow-tooltip />
-          <el-table-column prop="description" label="工具描述" align="center" show-overflow-tooltip />
+        <el-table :data="tableData" show-overflow-tooltip>
+          <el-table-column prop="name" label="工具名" align="center" />
+          <el-table-column prop="description" label="工具描述" align="center" />
           <el-table-column prop="updateTime" label="最近同步时间" align="center" />
           <el-table-column fixed="right" label="操作" width="120" align="center">
             <template #default="scope">

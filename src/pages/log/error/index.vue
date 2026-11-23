@@ -76,7 +76,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
           <el-table-column prop="method" label="请求方法" align="center" />
           <el-table-column prop="ip" label="ip地址" align="center" />
           <el-table-column prop="region" label="区域" align="center" />
-          <el-table-column prop="errorMsg" label="错误信息" show-overflow-tooltip align="center" />
+          <el-table-column prop="errorMsg" label="错误信息" align="center" />
           <el-table-column prop="createTime" label="创建时间" align="center" />
         </el-table>
       </div>

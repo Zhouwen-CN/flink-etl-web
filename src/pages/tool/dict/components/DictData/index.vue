@@ -192,7 +192,7 @@ defineExpose({
         </div>
       </div>
       <div class="table-wrapper">
-        <el-table :data="tableData" @selection-change="handleSelectionChange">
+        <el-table :data="tableData" @selection-change="handleSelectionChange" show-overflow-tooltip>
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column prop="label" label="字典标签" align="center" />
           <el-table-column prop="value" label="字典值" align="center" />

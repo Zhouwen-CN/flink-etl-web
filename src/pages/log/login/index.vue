@@ -66,7 +66,7 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
     </el-card>
     <el-card v-loading="loading" shadow="never">
       <div class="table-wrapper">
-        <el-table :data="tableData">
+        <el-table :data="tableData" show-overflow-tooltip>
           <el-table-column prop="username" label="用户名" align="center" />
           <el-table-column prop="operation" label="操作类型" align="center" />
           <el-table-column prop="ip" label="ip地址" align="center" />

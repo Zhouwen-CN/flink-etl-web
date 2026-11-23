@@ -235,7 +235,7 @@ onMounted(() => {
         </div>
       </div>
       <div class="table-wrapper">
-        <el-table :data="tableData">
+        <el-table :data="tableData" show-overflow-tooltip>
           <el-table-column prop="name" label="Bot 名称" align="center" />
           <el-table-column label="模型" align="center">
             <template #default="scope">

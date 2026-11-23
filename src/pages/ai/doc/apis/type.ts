@@ -22,8 +22,6 @@ export interface DocTableData {
   parseStatus: "WAITING" | "PROCESSING" | "SUCCESS" | "FAILED"
   /** 解析失败原因 */
   parseFailReason: string
-  /** 分块数量 */
-  chunkCount: number
   /** 更新时间 */
   updateTime: string
 }

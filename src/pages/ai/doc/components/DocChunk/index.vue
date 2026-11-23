@@ -150,9 +150,9 @@ defineExpose({
     </el-card>
     <el-card v-loading="loading" shadow="never">
       <div class="table-wrapper">
-        <el-table :data="tableData">
+        <el-table :data="tableData" show-overflow-tooltip>
           <el-table-column prop="id" label="分块ID" align="center" width="90" />
-          <el-table-column prop="content" label="分块内容" align="center" show-overflow-tooltip />
+          <el-table-column prop="content" label="分块内容" align="center" />
           <el-table-column prop="updateTime" label="更新时间" align="center" width="170" />
           <el-table-column fixed="right" label="操作" width="150" align="center">
             <template #default="scope">

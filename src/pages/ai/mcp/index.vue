@@ -206,18 +206,18 @@ function openDrawer(id: number) {
         </div>
       </div>
       <div class="table-wrapper">
-        <el-table :data="tableData">
+        <el-table :data="tableData" show-overflow-tooltip>
           <el-table-column prop="name" label="服务名称" align="center">
             <template #default="scope">
               <span class="server-name" @click="openDrawer(scope.row.id)">{{ scope.row.name }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="description" label="服务描述" align="center" show-overflow-tooltip>
+          <el-table-column prop="description" label="服务描述" align="center">
             <template #default="scope">
               {{ scope.row.description || "-" }}
             </template>
           </el-table-column>
-          <el-table-column prop="configJson" label="连接配置JSON" align="center" show-overflow-tooltip />
+          <el-table-column prop="configJson" label="连接配置JSON" align="center" />
           <el-table-column prop="updateTime" label="更新时间" align="center" />
           <el-table-column fixed="right" label="操作" width="220" align="center">
             <template #default="scope">

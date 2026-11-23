@@ -264,17 +264,17 @@ onMounted(() => {
       <div class="table-wrapper">
         <el-table :data="tableData" show-overflow-tooltip>
           <el-table-column prop="name" label="名称" align="center" />
-          <el-table-column prop="description" label="描述" align="center" show-overflow-tooltip>
+          <el-table-column prop="description" label="描述" align="center">
             <template #default="scope">
               {{ scope.row.description || "-" }}
             </template>
           </el-table-column>
-          <el-table-column prop="vectorDbId" label="向量数据库" align="center" show-overflow-tooltip>
+          <el-table-column prop="vectorDbId" label="向量数据库" align="center">
             <template #default="scope">
               {{ vectorDbMap.get(scope.row.vectorDbId) || '-' }}
             </template>
           </el-table-column>
-          <el-table-column prop="embedModelId" label="嵌入模型" align="center" show-overflow-tooltip>
+          <el-table-column prop="embedModelId" label="嵌入模型" align="center">
             <template #default="scope">
               {{ embedModelMap.get(scope.row.embedModelId) || '-' }}
             </template>

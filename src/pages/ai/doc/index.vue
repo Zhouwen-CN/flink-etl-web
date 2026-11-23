@@ -268,7 +268,7 @@ function openDrawer(row: DocTableData) {
               <span class="doc-name" @click="openDrawer(scope.row)">{{ scope.row.fileName }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="知识库" align="center" width="140" show-overflow-tooltip>
+          <el-table-column label="知识库" align="center" width="140">
             <template #default="scope">
               {{ knowledgeMap.get(scope.row.knowledgeId) || scope.row.knowledgeId }}
             </template>
@@ -283,7 +283,6 @@ function openDrawer(row: DocTableData) {
               </el-tooltip>
             </template>
           </el-table-column>
-          <el-table-column prop="chunkCount" label="分块数量" align="center" width="90" />
           <el-table-column prop="updateTime" label="更新时间" align="center" />
           <el-table-column fixed="right" label="操作" width="280" align="center">
             <template #default="scope">

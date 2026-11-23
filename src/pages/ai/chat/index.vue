@@ -127,12 +127,25 @@ const autoSize = computed(() =>
 const isLoading = ref(false)
 let abortController: AbortController | null = null
 
+// 最近一次已加载历史的会话 id：切回页面时若是同一会话则不重复加载
+let lastLoadedSessionId: string | undefined
+
 watch(
   () => route.query?.sessionId,
-  async (id) => {
+  async (rawId) => {
+    // 路由已切到其他页面（keep-alive 下 watcher 依然活跃）时忽略，保持缓存状态
+    if (route.name !== "chat") return
+
+    // query 可能是 string | LocationQueryValue[]，归一化为 string
+    const id = rawId as string
+
+    // 返回页面时仍是同一会话且已有数据，不重复加载
+    if (id && id === lastLoadedSessionId && bubbleItems.value.length) return
+
     // 无会话 id：回到欢迎页，清空消息
     if (!id) {
       bubbleItems.value = []
+      lastLoadedSessionId = undefined
       return
     }
 
@@ -140,6 +153,7 @@ watch(
     try {
       const messages = await getConversationMessageListApi(Number(id))
       bubbleItems.value = mapHistoryMessages(messages)
+      lastLoadedSessionId = id
     } catch (error) {
       console.error("getConversationMessageList错误:", error)
       bubbleItems.value = []

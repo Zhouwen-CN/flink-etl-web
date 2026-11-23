@@ -105,6 +105,8 @@ export interface DoneAttributes {
   inputToken?: number
   outputToken?: number
   totalToken?: number
+  /** 所属模型的上下文窗口（token 数） */
+  contextWindow?: number
 }
 
 /** 历史消息（用户 / AI / 工具执行结果 / 系统消息） */

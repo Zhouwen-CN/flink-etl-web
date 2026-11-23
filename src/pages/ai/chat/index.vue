@@ -36,6 +36,8 @@ type MessageItem = BubbleProps & {
   inputToken?: number
   outputToken?: number
   totalToken?: number
+  /** 所属模型的上下文窗口（token 数，来自 done 事件 attributes） */
+  contextWindow?: number
   /** 用户消息携带的图片（data URL） */
   images?: string[]
 }
@@ -336,10 +338,24 @@ function finishLastMessage(attributes?: DoneAttributes) {
     last.inputToken = attributes.inputToken
     last.outputToken = attributes.outputToken
     last.totalToken = attributes.totalToken
+    last.contextWindow = attributes.contextWindow
   }
   last.thinkingStatus = "end"
   last.loading = false
   last.typing = false
+}
+
+/** 上下文使用百分比（totalToken 相对消息所属模型的上下文窗口） */
+function contextPercent(item: MessageItem): number {
+  if (!item.contextWindow) return 0
+  return Math.min(100, Math.round(((item.totalToken ?? 0) / item.contextWindow) * 1000) / 10)
+}
+
+/** 上下文使用量对应的进度环颜色 */
+function contextColor(percentage: number): string {
+  if (percentage >= 90) return "var(--el-color-danger)"
+  if (percentage >= 70) return "var(--el-color-warning)"
+  return "var(--el-color-success)"
 }
 
 /** File 转 base64 data URL（data:image/png;base64,xxx） */
@@ -636,6 +652,23 @@ watch(
           <template #footer="{ item }">
             <div v-if="item.role === 'ai' && item.totalToken" class="token-info">
               输入 {{ item.inputToken ?? 0 }} · 输出 {{ item.outputToken ?? 0 }} · 总计 {{ item.totalToken }}
+              <el-tooltip
+                v-if="item.contextWindow"
+                :content="`上下文已用 ${contextPercent(item)}%（${item.totalToken} / ${item.contextWindow} tokens）`"
+                placement="top"
+              >
+                <svg class="context-ring" viewBox="0 0 20 20">
+                  <circle class="context-ring-track" cx="10" cy="10" r="8" />
+                  <circle
+                    class="context-ring-bar"
+                    cx="10"
+                    cy="10"
+                    r="8"
+                    :stroke="contextColor(contextPercent(item))"
+                    :stroke-dasharray="`${(contextPercent(item) / 100) * 2 * Math.PI * 8} 999`"
+                  />
+                </svg>
+              </el-tooltip>
             </div>
           </template>
         </BubbleList>
@@ -946,8 +979,31 @@ watch(
 
   // token 统计小字，跟随主题文字色
   .token-info {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
     font-size: 12px;
     color: var(--el-text-color-secondary);
+
+    .context-ring {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      transform: rotate(-90deg);
+
+      circle {
+        fill: none;
+        stroke-width: 3;
+      }
+
+      .context-ring-track {
+        stroke: var(--el-border-color-darker);
+      }
+
+      .context-ring-bar {
+        stroke-linecap: round;
+      }
+    }
   }
 
   .markdown-body {

@@ -27,6 +27,9 @@ function loadKnowledgeOptions() {
 
 const selectedKnowledgeId = ref<number | undefined>(undefined)
 
+// 知识库字典映射：ID -> 名称（用于表格列渲染）
+const knowledgeMap = computed(() => new Map(knowledgeOptions.value.map(item => [item.value, item.label])))
+
 function handleKnowledgeChange(value: number | "") {
   // clearable 清空时返回空字符串，归一化为 undefined（查询全部）
   selectedKnowledgeId.value = value === "" ? undefined : value
@@ -263,6 +266,11 @@ function openDrawer(row: DocTableData) {
           <el-table-column prop="fileName" label="文件名" align="center">
             <template #default="scope">
               <span class="doc-name" @click="openDrawer(scope.row)">{{ scope.row.fileName }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="知识库" align="center" width="140" show-overflow-tooltip>
+            <template #default="scope">
+              {{ knowledgeMap.get(scope.row.knowledgeId) || scope.row.knowledgeId }}
             </template>
           </el-table-column>
           <el-table-column prop="fileType" label="文件类型" align="center" width="90" />

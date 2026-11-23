@@ -37,8 +37,8 @@ const DEFAULT_FORM_DATA: CreateKnowledgeRequestData & { id?: number } = {
   vectorDbId: undefined as unknown as number,
   embedModelId: undefined as unknown as number,
   recallTopK: 5,
-  minScore: 0.2,
-  chunkSize: 800,
+  minScore: 0.6,
+  chunkSize: 1000,
   overlapSize: 200
 }
 

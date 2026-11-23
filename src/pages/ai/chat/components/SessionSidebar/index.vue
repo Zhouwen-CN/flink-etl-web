@@ -61,7 +61,7 @@ function handleKeydown(e: KeyboardEvent) {
 
 // 创建会话（回到欢迎页，发送首条消息时才真正创建）
 function handleCreatChat() {
-  router.replace({ name: "AIChat" })
+  router.replace({ name: "chat" })
 }
 
 // 展开侧栏（点击收起状态下的入口图标）
@@ -72,7 +72,7 @@ function handleExpand() {
 // 切换会话
 function handleChange(item: ConversationItem<ConversationVO>) {
   router.replace({
-    name: "AIChat",
+    name: "chat",
     query: { sessionId: `${item.id}` }
   })
 }
@@ -91,7 +91,7 @@ function handleMenuCommand(command: ConversationMenuCommand, item: ConversationI
           fetchSessionList()
           // 如果删除的是当前会话，返回到默认页
           if (`${item.id}` === sessionId.value)
-            router.replace({ name: "AIChat" })
+            router.replace({ name: "chat" })
         })
         .catch(() => {
           // 取消删除

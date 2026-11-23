@@ -4,7 +4,7 @@ import type { CreateOrUpdateBotRequestData, DeptVO, McpSelectorNodeData, ModelSe
 import { usePagination } from "@@/composables/usePagination"
 import { CirclePlus, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
-import { createBotApi, deleteBotApi, getBotPageApi, getBotToolIdsApi, getDeptSelectorDataApi, getMcpSelectorApi, getModelSelectorApi, updateBotApi } from "./apis/index"
+import { createBotApi, deleteBotApi, getBotKnowledgeIdsApi, getBotPageApi, getBotToolIdsApi, getDeptSelectorDataApi, getKnowledgeSelectorApi, getMcpSelectorApi, getModelSelectorApi, updateBotApi } from "./apis/index"
 
 const loading = ref<boolean>(false)
 
@@ -18,6 +18,8 @@ const deptTreeData = ref<DeptVO[]>([])
 
 const mcpTreeData = ref<McpSelectorNodeData[]>([])
 
+const knowledgeOptions = ref<ModelSelectorOptionData[]>([])
+
 function getSelectors() {
   getModelSelectorApi().then(({ data }) => {
     modelOptions.value = data
@@ -28,6 +30,9 @@ function getSelectors() {
   })
   getMcpSelectorApi().then(({ data }) => {
     mcpTreeData.value = data
+  })
+  getKnowledgeSelectorApi().then(({ data }) => {
+    knowledgeOptions.value = data
   })
 }
 // #endregion
@@ -43,7 +48,8 @@ const DEFAULT_FORM_DATA: CreateOrUpdateBotRequestData = {
   systemPrompt: undefined,
   status: true,
   deptId: undefined,
-  toolIds: []
+  toolIds: [],
+  knowledgeIds: []
 }
 
 const dialogVisible = ref<boolean>(false)
@@ -131,6 +137,11 @@ function handleUpdate(row: TableData) {
   formData.value.toolIds = []
   getBotToolIdsApi(row.id).then(({ data }) => {
     formData.value.toolIds = data
+  })
+  // 知识库ID列表：先清空，再根据bot ID查询回显
+  formData.value.knowledgeIds = []
+  getBotKnowledgeIdsApi(row.id).then(({ data }) => {
+    formData.value.knowledgeIds = data
   })
 }
 // #endregion
@@ -315,6 +326,20 @@ onMounted(() => {
             }"
             style="width: 100%"
           />
+        </el-form-item>
+        <el-form-item prop="knowledgeIds" label="知识库">
+          <el-select
+            v-model="formData.knowledgeIds"
+            multiple
+            filterable
+            collapse-tags
+            collapse-tags-tooltip
+            :max-collapse-tags="2"
+            placeholder="请选择"
+            style="width: 100%"
+          >
+            <el-option v-for="item in knowledgeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item prop="temperature" label="温度">
           <div class="slider-switch-wrapper">

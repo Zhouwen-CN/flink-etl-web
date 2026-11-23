@@ -259,15 +259,6 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         }
       },
       {
-        path: "model",
-        component: () => import("@/pages/ai/model/index.vue"),
-        name: "model",
-        meta: {
-          title: "模型管理",
-          roles: ["admin"]
-        }
-      },
-      {
         path: "bot",
         component: () => import("@/pages/ai/bot/index.vue"),
         name: "bot",
@@ -277,20 +268,21 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         }
       },
       {
+        path: "model",
+        component: () => import("@/pages/ai/model/index.vue"),
+        name: "model",
+        meta: {
+          title: "模型管理",
+          roles: ["admin"]
+        }
+      },
+
+      {
         path: "mcp",
         component: () => import("@/pages/ai/mcp/index.vue"),
         name: "mcp",
         meta: {
           title: "MCP 服务",
-          roles: ["admin"]
-        }
-      },
-      {
-        path: "vectordb",
-        component: () => import("@/pages/ai/vectordb/index.vue"),
-        name: "vectordb",
-        meta: {
-          title: "向量数据库",
           roles: ["admin"]
         }
       },
@@ -309,6 +301,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         name: "doc",
         meta: {
           title: "知识库文档",
+          roles: ["admin"]
+        }
+      },
+      {
+        path: "vectordb",
+        component: () => import("@/pages/ai/vectordb/index.vue"),
+        name: "vectordb",
+        meta: {
+          title: "向量数据库",
           roles: ["admin"]
         }
       }

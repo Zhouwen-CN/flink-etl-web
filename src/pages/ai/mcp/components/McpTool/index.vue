@@ -172,7 +172,7 @@ defineExpose({
             v-model="formData.outputTemplate"
             type="textarea"
             :rows="6"
-            placeholder="请输入自定义输出模板，留空保存表示清空"
+            placeholder="请输入自定义输出模板，{result} 引用工具结果，留空表示不对工具结果进行加工"
           />
         </el-form-item>
       </el-form>

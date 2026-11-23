@@ -27,6 +27,13 @@ function loadKnowledgeOptions() {
 
 const selectedKnowledgeId = ref<number | undefined>(undefined)
 
+// 支持从知识库列表页跳转：路由 query 携带 knowledgeId 时预筛选
+const route = useRoute()
+const routeKnowledgeId = Number(route.query.knowledgeId)
+if (Number.isInteger(routeKnowledgeId) && routeKnowledgeId > 0) {
+  selectedKnowledgeId.value = routeKnowledgeId
+}
+
 // 知识库字典映射：ID -> 名称（用于表格列渲染）
 const knowledgeMap = computed(() => new Map(knowledgeOptions.value.map(item => [item.value, item.label])))
 

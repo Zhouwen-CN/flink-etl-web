@@ -50,13 +50,7 @@ const formRules: FormRules<CreateOrUpdateModelRequestData> = {
   format: [{ required: true, trigger: "change", message: "请选择接口格式" }],
   type: [{ required: true, trigger: "change", message: "请选择模型类型" }],
   baseUrl: [{ required: true, trigger: "blur", message: "请输入请求地址" }],
-  // 修改时留空表示不修改，仅在新增时必填
-  apiKey: [{
-    trigger: "blur",
-    validator: (_rule, value: string | undefined, callback: (error?: Error) => void) => {
-      formData.value.id === undefined && !value ? callback(new Error("请输入 API KEY")) : callback()
-    }
-  }],
+  apiKey: [{ required: true, trigger: "blur", message: "请输入 API KEY" }],
   modelName: [{ required: true, trigger: "blur", message: "请输入模型名称" }],
   contextWindow: [{ required: true, trigger: "change", message: "请选择上下文窗口" }]
 }
@@ -76,11 +70,7 @@ function handleCreateOrUpdate() {
       return
     }
     loading.value = true
-    // 更新时若未填写 apiKey，则不提交该字段（后端忽略 null，保留原值）
     const form = { ...formData.value }
-    if (form.id !== undefined && !form.apiKey) {
-      delete form.apiKey
-    }
     // 输入非法数字时 v-model.number 会得到原始字符串，此时不提交该字段
     if (typeof form.contextWindow !== "number") {
       delete form.contextWindow
@@ -334,7 +324,7 @@ onMounted(() => {
         <el-form-item prop="apiKey" label="API KEY">
           <el-input
             v-model="formData.apiKey"
-            :placeholder="formData.id === undefined ? '请输入' : '留空则不修改'"
+            placeholder="请输入"
             maxlength="1000"
             show-password
           />

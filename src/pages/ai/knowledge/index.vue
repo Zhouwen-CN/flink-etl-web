@@ -12,6 +12,8 @@ const loading = ref<boolean>(false)
 
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 
+const router = useRouter()
+
 // #region 选择器数据
 const vectorDbOptions = ref<DictionaryData[]>([])
 const embedModelOptions = ref<DictionaryData[]>([])
@@ -263,7 +265,13 @@ onMounted(() => {
       </div>
       <div class="table-wrapper">
         <el-table :data="tableData" show-overflow-tooltip>
-          <el-table-column prop="name" label="名称" align="center" />
+          <el-table-column prop="name" label="名称" align="center">
+            <template #default="scope">
+              <el-link type="primary" @click="router.push({ path: '/ai/doc', query: { knowledgeId: scope.row.id } })">
+                {{ scope.row.name }}
+              </el-link>
+            </template>
+          </el-table-column>
           <el-table-column prop="description" label="描述" align="center">
             <template #default="scope">
               {{ scope.row.description || "-" }}

@@ -42,7 +42,7 @@ type MessageItem = BubbleProps & {
   images?: string[]
 }
 
-const USER_AVATAR = "https://avatars.githubusercontent.com/u/76239030?v=4"
+const USER_AVATAR = "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif?imageView2/1/w/32/h/32"
 const AI_AVATAR = "https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
 
 const route = useRoute()
@@ -58,6 +58,13 @@ type ChatFileItem = FilesCardProps & {
 
 const filesList = ref<ChatFileItem[]>([])
 
+// crypto.randomUUID 仅在安全上下文（HTTPS/localhost）可用，HTTP 部署时需降级生成
+function genUid() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function")
+    return crypto.randomUUID()
+  return `uid-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
 // 把原生 File 转成附件卡片项，追加到列表（选择文件、粘贴截图都走这里）
 // 暂时仅支持图片附件
 function addFiles(files: File[]) {
@@ -68,7 +75,7 @@ function addFiles(files: File[]) {
     return
   const items = images.map(file =>
     ({
-      uid: crypto.randomUUID(), // 不写 uid，文件列表展示不出来，elx 1.2.0 bug 待修复
+      uid: genUid(), // 不写 uid，文件列表展示不出来，elx 1.2.0 bug 待修复
       name: file.name,
       fileSize: file.size,
       file,

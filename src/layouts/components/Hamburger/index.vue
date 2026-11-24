@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { Expand, Fold } from "@element-plus/icons-vue"
+import SvgFold from "@@/assets/icons/sidebar-close.svg?component"
+import SvgExpand from "@@/assets/icons/sidebar-open.svg?component"
 
 interface Props {
   isActive?: boolean
@@ -18,15 +19,15 @@ function toggleClick() {
 
 <template>
   <div @click="toggleClick">
-    <el-icon :size="20" class="icon">
-      <Fold v-if="isActive" />
-      <Expand v-else />
-    </el-icon>
+    <SvgFold v-if="isActive" class="icon" />
+    <SvgExpand v-else class="icon" />
   </div>
 </template>
 
 <style lang="scss" scoped>
 .icon {
+  width: 20px;
+  height: 20px;
   vertical-align: middle;
   color: var(--v3-hamburger-text-color);
 }

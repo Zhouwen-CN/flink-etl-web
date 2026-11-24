@@ -136,7 +136,7 @@ defineExpose({ refresh: fetchSessionList, sessionList })
   <!-- 收起状态：左上角保留展开入口图标，点击可重新展开面板 -->
   <div v-if="isCollapse" class="collapsed-entry">
     <el-icon class="expand-icon" title="展开对话历史" @click="handleExpand">
-      <Fold />
+      <Expand />
     </el-icon>
   </div>
   <div

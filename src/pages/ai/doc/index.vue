@@ -181,12 +181,18 @@ function handleDownload(row: DocTableData) {
 const reparseLoadingId = ref<number | undefined>(undefined)
 
 function handleReparse(row: DocTableData) {
-  reparseLoadingId.value = row.id
-  reparseDocApi(row.id).then(() => {
-    ElMessage.success("已提交重新解析")
-    getTableData()
-  }).finally(() => {
-    reparseLoadingId.value = undefined
+  ElMessageBox.confirm(`正在重新解析文档：${row.fileName}，将清除原有分块与向量数据，确认继续？`, "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning"
+  }).then(() => {
+    reparseLoadingId.value = row.id
+    reparseDocApi(row.id).then(() => {
+      ElMessage.success("已提交重新解析")
+      getTableData()
+    }).finally(() => {
+      reparseLoadingId.value = undefined
+    })
   })
 }
 

@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import type { FormRules } from "element-plus"
 import type { UpdatePasswordRequestData } from "@/common/apis/users/type"
+import userAvatar from "@@/assets/images/avatar/user_avatar.png?url"
 import Screenfull from "@@/components/Screenfull/index.vue"
 import SearchMenu from "@@/components/SearchMenu/index.vue"
 import ThemeSwitch from "@@/components/ThemeSwitch/index.vue"
 import { useDevice } from "@@/composables/useDevice"
 import { useLayoutMode } from "@@/composables/useLayoutMode"
-import { UserFilled } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
 import { logoutApi, updatePasswordApi } from "@/common/apis/users"
 import { useAppStore } from "@/pinia/stores/app"
@@ -100,7 +100,7 @@ function resetForm() {
       <ThemeSwitch v-if="showThemeSwitch" class="right-menu-item" />
       <el-dropdown>
         <div class="right-menu-item user">
-          <el-avatar :icon="UserFilled" :size="30" />
+          <el-avatar :src="userAvatar" :size="32" />
           <span>{{ userStore.username }}</span>
         </div>
         <template #dropdown>

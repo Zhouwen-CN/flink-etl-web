@@ -5,6 +5,8 @@ import type { BubbleListInstance } from "vue-element-plus-x/types/BubbleList"
 import type { FilesCardProps } from "vue-element-plus-x/types/FilesCard"
 import type { ThinkingStatus } from "vue-element-plus-x/types/Thinking"
 import type { AiMessageVO, BotOptionVO, ChatMessage, DoneAttributes, ToolExecutionRequest, ToolExecutionResult, UserImageContent } from "./api/types"
+import aiAvatar from "@@/assets/images/avatar/ai_avatar.gif?url"
+import userAvatar from "@@/assets/images/avatar/user_avatar.png?url"
 import { useTheme } from "@@/composables/useTheme"
 import { Tools } from "@element-plus/icons-vue"
 import { computed, nextTick, ref, watch } from "vue"
@@ -14,6 +16,7 @@ import { createConversationApi, getConversationMessageListApi, streamChat } from
 import BotSelect from "./components/BotSelect/index.vue"
 import FilesSelect from "./components/FilesSelect/index.vue"
 import SessionSidebar from "./components/SessionSidebar/index.vue"
+
 import WelecomeText from "./components/WelecomeText/index.vue"
 import { usePasteFiles } from "./hooks/usePasteFiles"
 
@@ -41,9 +44,6 @@ type MessageItem = BubbleProps & {
   /** 用户消息携带的图片（data URL） */
   images?: string[]
 }
-
-const USER_AVATAR = "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif?imageView2/1/w/32/h/32"
-const AI_AVATAR = "https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
 
 const route = useRoute()
 const router = useRouter()
@@ -484,7 +484,7 @@ function mapHistoryMessages(messages: ChatMessage[]): MessageItem[] {
         .filter(Boolean)
       items.push({
         key: items.length,
-        avatar: USER_AVATAR,
+        avatar: userAvatar,
         avatarSize: "32px",
         role: "user",
         placement: "end",
@@ -499,7 +499,7 @@ function mapHistoryMessages(messages: ChatMessage[]): MessageItem[] {
         ? last
         : {
             key: items.length,
-            avatar: AI_AVATAR,
+            avatar: aiAvatar,
             avatarSize: "32px",
             role: "ai",
             placement: "start",
@@ -526,7 +526,7 @@ function mapHistoryMessages(messages: ChatMessage[]): MessageItem[] {
 function addMessage(message: string, isUser: boolean, images: string[] = []) {
   const obj: MessageItem = {
     key: bubbleItems.value.length,
-    avatar: isUser ? USER_AVATAR : AI_AVATAR,
+    avatar: isUser ? userAvatar : aiAvatar,
     avatarSize: "32px",
     role: isUser ? "user" : "ai",
     placement: isUser ? "end" : "start",

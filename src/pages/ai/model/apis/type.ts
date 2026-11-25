@@ -1,17 +1,12 @@
 /** 接口格式（字典 ai_api_format 的值） */
 export type ModelFormat = number
 
-/** 模型类型（字典 ai_model_type 的值） */
-export type ModelType = number
-
 export interface CreateOrUpdateModelRequestData {
   id?: number
   /** 模型唯一标识 */
   name?: string
   /** 接口格式 */
   format?: ModelFormat
-  /** 模型类型 */
-  type?: ModelType
   /** 大模型请求地址 */
   baseUrl?: string
   /** 大模型 API KEY（留空则不更新） */
@@ -39,8 +34,6 @@ export interface TableData {
   id: number
   name: string
   format: ModelFormat
-  /** 模型类型 */
-  type?: ModelType
   baseUrl: string
   apiKey: string
   modelName: string

@@ -1,5 +1,4 @@
 import type * as Knowledge from "./type"
-import type { DictionaryResponseData } from "@/common/apis/dict/type"
 import { request } from "@/http/axios"
 
 /** 查（分页） */
@@ -11,24 +10,8 @@ export function getKnowledgePageApi(params: Knowledge.TableRequestData) {
   })
 }
 
-/** 向量数据库选择器 */
-export function getVectorDbSelectorApi() {
-  return request<DictionaryResponseData>({
-    url: "ai/knowledge/vectordb/selector",
-    method: "get"
-  })
-}
-
-/** Embedding模型选择器 */
-export function getEmbedModelSelectorApi() {
-  return request<DictionaryResponseData>({
-    url: "ai/knowledge/embed-model/selector",
-    method: "get"
-  })
-}
-
 /** 增 */
-export function createKnowledgeApi(data: Knowledge.CreateKnowledgeRequestData) {
+export function createKnowledgeApi(data: Knowledge.CreateOrUpdateKnowledgeRequestData) {
   return request({
     url: "ai/knowledge",
     method: "post",
@@ -37,7 +20,7 @@ export function createKnowledgeApi(data: Knowledge.CreateKnowledgeRequestData) {
 }
 
 /** 改 */
-export function updateKnowledgeApi(data: Knowledge.UpdateKnowledgeRequestData) {
+export function updateKnowledgeApi(data: Knowledge.CreateOrUpdateKnowledgeRequestData) {
   return request({
     url: "ai/knowledge",
     method: "put",

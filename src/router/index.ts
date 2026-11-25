@@ -303,15 +303,6 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           title: "知识库文档",
           roles: ["admin"]
         }
-      },
-      {
-        path: "vectordb",
-        component: () => import("@/pages/ai/vectordb/index.vue"),
-        name: "vectordb",
-        meta: {
-          title: "向量数据库",
-          roles: ["admin"]
-        }
       }
     ]
   },

@@ -1,12 +1,11 @@
 <script lang="ts" setup>
 import type { FormRules } from "element-plus"
-import type { CreateKnowledgeRequestData, TableData, UpdateKnowledgeRequestData } from "./apis/type"
-import type { DictionaryData } from "@/common/apis/dict/type"
+import type { CreateOrUpdateKnowledgeRequestData, TableData } from "./apis/type"
 import { usePagination } from "@@/composables/usePagination"
 import { CirclePlus, Refresh, RefreshRight, Search } from "@element-plus/icons-vue"
 import { cloneDeep } from "lodash-es"
 import { computed, ref } from "vue"
-import { createKnowledgeApi, deleteKnowledgeApi, getEmbedModelSelectorApi, getKnowledgePageApi, getVectorDbSelectorApi, updateKnowledgeApi } from "./apis/index"
+import { createKnowledgeApi, deleteKnowledgeApi, getKnowledgePageApi, updateKnowledgeApi } from "./apis/index"
 
 const loading = ref<boolean>(false)
 
@@ -14,32 +13,11 @@ const { paginationData, handleCurrentChange, handleSizeChange } = usePagination(
 
 const router = useRouter()
 
-// #region 选择器数据
-const vectorDbOptions = ref<DictionaryData[]>([])
-const embedModelOptions = ref<DictionaryData[]>([])
-
-const vectorDbMap = computed(() => new Map(vectorDbOptions.value.map(item => [item.value, item.label])))
-const embedModelMap = computed(() => new Map(embedModelOptions.value.map(item => [item.value, item.label])))
-
-function loadSelectors() {
-  getVectorDbSelectorApi().then(({ data }) => {
-    vectorDbOptions.value = data
-  })
-  getEmbedModelSelectorApi().then(({ data }) => {
-    embedModelOptions.value = data
-  })
-}
-// #endregion
-
 // #region 增/改
-const DEFAULT_FORM_DATA: CreateKnowledgeRequestData & { id?: number } = {
+const DEFAULT_FORM_DATA: CreateOrUpdateKnowledgeRequestData = {
   id: undefined,
-  name: undefined as unknown as string,
+  name: undefined,
   description: undefined,
-  vectorDbId: undefined as unknown as number,
-  embedModelId: undefined as unknown as number,
-  recallTopK: 5,
-  minScore: 0.6,
   chunkSize: 1000,
   overlapSize: 200
 }
@@ -48,43 +26,14 @@ const dialogVisible = ref<boolean>(false)
 
 const formRef = useTemplateRef("formRef")
 
-const formData = ref<CreateKnowledgeRequestData & { id?: number }>(cloneDeep(DEFAULT_FORM_DATA))
+const formData = ref<CreateOrUpdateKnowledgeRequestData>(cloneDeep(DEFAULT_FORM_DATA))
 
-// 编辑模式下向量数据库/嵌入模型不可变更
 const isEdit = computed(() => formData.value.id !== undefined)
 
-const formRules = computed<FormRules<CreateKnowledgeRequestData & { id?: number }>>(() => ({
+const formRules: FormRules<CreateOrUpdateKnowledgeRequestData> = {
   name: [{ required: true, trigger: "blur", message: "请输入名称" }],
-  vectorDbId: [{ required: !isEdit.value, trigger: "change", message: "请选择向量数据库" }],
-  embedModelId: [{ required: !isEdit.value, trigger: "change", message: "请选择嵌入模型" }],
-  recallTopK: [{ trigger: "change", validator: validateRecallTopK }],
-  minScore: [{ trigger: "change", validator: validateMinScore }],
   chunkSize: [{ trigger: "change", validator: validateChunkSize }],
   overlapSize: [{ trigger: "change", validator: validateOverlapSize }]
-}))
-
-function validateRecallTopK(_rule: unknown, value: number | undefined, callback: (error?: Error) => void) {
-  if (value === undefined || value === null) {
-    callback()
-    return
-  }
-  if (!Number.isInteger(value) || value < 1 || value > 100) {
-    callback(new Error("最大召回条数须为 1~100 的整数"))
-  } else {
-    callback()
-  }
-}
-
-function validateMinScore(_rule: unknown, value: number | undefined, callback: (error?: Error) => void) {
-  if (value === undefined || value === null) {
-    callback()
-    return
-  }
-  if (value < 0 || value > 1) {
-    callback(new Error("相似度下限须在 0~1 之间"))
-  } else {
-    callback()
-  }
 }
 
 function validateChunkSize(_rule: unknown, value: number | undefined, callback: (error?: Error) => void) {
@@ -122,27 +71,9 @@ function handleCreateOrUpdate() {
       return
     }
     loading.value = true
-    const requestPromise = isEdit.value
-      ? updateKnowledgeApi({
-        id: formData.value.id!,
-        name: formData.value.name,
-        description: formData.value.description,
-        recallTopK: formData.value.recallTopK,
-        minScore: formData.value.minScore,
-        chunkSize: formData.value.chunkSize,
-        overlapSize: formData.value.overlapSize
-      } satisfies UpdateKnowledgeRequestData)
-      : createKnowledgeApi({
-          name: formData.value.name,
-          description: formData.value.description,
-          vectorDbId: formData.value.vectorDbId,
-          embedModelId: formData.value.embedModelId,
-          recallTopK: formData.value.recallTopK,
-          minScore: formData.value.minScore,
-          chunkSize: formData.value.chunkSize,
-          overlapSize: formData.value.overlapSize
-        })
-    requestPromise.then(() => {
+    const form = { ...formData.value }
+    const api = form.id === undefined ? createKnowledgeApi : updateKnowledgeApi
+    api(form).then(() => {
       ElMessage.success("操作成功")
       dialogVisible.value = false
       getTableData()
@@ -176,17 +107,7 @@ function handleDelete(row: TableData) {
 // #region 改
 function handleUpdate(row: TableData) {
   dialogVisible.value = true
-  formData.value = {
-    id: row.id,
-    name: row.name,
-    description: row.description,
-    vectorDbId: row.vectorDbId,
-    embedModelId: row.embedModelId,
-    recallTopK: row.recallTopK,
-    minScore: row.minScore,
-    chunkSize: row.chunkSize,
-    overlapSize: row.overlapSize
-  }
+  formData.value = cloneDeep(row)
 }
 // #endregion
 
@@ -227,10 +148,6 @@ function resetSearch() {
 
 // 监听分页参数的变化
 watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
-
-onMounted(() => {
-  loadSelectors()
-})
 </script>
 
 <template>
@@ -277,19 +194,6 @@ onMounted(() => {
               {{ scope.row.description || "-" }}
             </template>
           </el-table-column>
-          <el-table-column prop="vectorDbId" label="向量数据库" align="center">
-            <template #default="scope">
-              {{ vectorDbMap.get(scope.row.vectorDbId) || '-' }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="embedModelId" label="嵌入模型" align="center">
-            <template #default="scope">
-              {{ embedModelMap.get(scope.row.embedModelId) || '-' }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="dimension" label="向量维度" align="center" width="90" />
-          <el-table-column prop="recallTopK" label="最大召回" align="center" width="90" />
-          <el-table-column prop="minScore" label="相似度下限" align="center" width="100" />
           <el-table-column prop="chunkSize" label="分块大小" align="center" width="90" />
           <el-table-column prop="overlapSize" label="重叠大小" align="center" width="90" />
           <el-table-column prop="updateTime" label="更新时间" align="center" />
@@ -331,22 +235,6 @@ onMounted(() => {
         </el-form-item>
         <el-form-item prop="description" label="描述">
           <el-input v-model="formData.description" placeholder="请输入" maxlength="255" />
-        </el-form-item>
-        <el-form-item prop="vectorDbId" label="向量数据库">
-          <el-select v-model="formData.vectorDbId" :disabled="isEdit" placeholder="请选择" style="width: 100%">
-            <el-option v-for="item in vectorDbOptions" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item prop="embedModelId" label="嵌入模型">
-          <el-select v-model="formData.embedModelId" :disabled="isEdit" placeholder="请选择" style="width: 100%">
-            <el-option v-for="item in embedModelOptions" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item prop="recallTopK" label="最大召回条数">
-          <el-input-number v-model="formData.recallTopK" :min="1" :max="100" :step="1" step-strictly controls-position="right" style="width: 100%" />
-        </el-form-item>
-        <el-form-item prop="minScore" label="相似度下限">
-          <el-input-number v-model="formData.minScore" :min="0" :max="1" :step="0.05" :precision="2" controls-position="right" style="width: 100%" />
         </el-form-item>
         <el-form-item prop="chunkSize" label="分块大小">
           <el-input-number v-model="formData.chunkSize" :min="50" :max="10000" :step="100" step-strictly controls-position="right" style="width: 100%" />

@@ -4,7 +4,7 @@ import type { BubbleProps } from "vue-element-plus-x/types/Bubble"
 import type { BubbleListInstance } from "vue-element-plus-x/types/BubbleList"
 import type { FilesCardProps } from "vue-element-plus-x/types/FilesCard"
 import type { ThinkingStatus } from "vue-element-plus-x/types/Thinking"
-import type { AiMessageVO, BotOptionVO, ChatMessage, DoneAttributes, ToolExecutionRequest, ToolExecutionResult, UserImageContent } from "./api/types"
+import type { AiMessageVO, BotOptionVO, ChatMessage, DoneAttributes, RetrievalContent, TokenUsage, ToolExecutionRequest, ToolExecutionResult, UserImageContent } from "./api/types"
 import aiAvatar from "@@/assets/images/avatar/ai_avatar.gif?url"
 import userAvatar from "@@/assets/images/avatar/user_avatar.png?url"
 import { useTheme } from "@@/composables/useTheme"
@@ -36,11 +36,10 @@ type MessageItem = BubbleProps & {
   thinlCollapse?: boolean
   /** 思考链内容片段（思考文本 + 工具调用，按发生顺序排列） */
   thinkingParts?: ThinkingPart[]
-  inputToken?: number
-  outputToken?: number
-  totalToken?: number
-  /** 所属模型的上下文窗口（token 数，来自 done 事件 attributes） */
-  contextWindow?: number
+  /** token 用量统计（来自 done 事件 / 历史 AI 消息 attributes） */
+  tokenUsage?: TokenUsage
+  /** 引用检索内容（来自 done 事件 / 历史 AI 消息 attributes） */
+  retrievalContent?: RetrievalContent[]
   /** 用户消息携带的图片（data URL） */
   images?: string[]
 }
@@ -342,10 +341,10 @@ function finishLastMessage(attributes?: DoneAttributes) {
   if (!last)
     return
   if (attributes) {
-    last.inputToken = attributes.inputToken
-    last.outputToken = attributes.outputToken
-    last.totalToken = attributes.totalToken
-    last.contextWindow = attributes.contextWindow
+    if (attributes.tokenUsage)
+      last.tokenUsage = attributes.tokenUsage
+    if (attributes.retrievalContent?.length)
+      last.retrievalContent = attributes.retrievalContent
   }
   last.thinkingStatus = "end"
   last.loading = false
@@ -354,8 +353,92 @@ function finishLastMessage(attributes?: DoneAttributes) {
 
 /** 上下文使用百分比（totalToken 相对消息所属模型的上下文窗口） */
 function contextPercent(item: MessageItem): number {
-  if (!item.contextWindow) return 0
-  return Math.min(100, Math.round(((item.totalToken ?? 0) / item.contextWindow) * 1000) / 10)
+  const contextWindow = item.tokenUsage?.contextWindow
+  if (!contextWindow) return 0
+  return Math.min(100, Math.round(((item.tokenUsage?.totalToken ?? 0) / contextWindow) * 1000) / 10)
+}
+
+/** 去除 url 中可能混入的反引号 */
+function cleanUrl(url?: string): string {
+  return (url ?? "").replace(/`/g, "")
+}
+
+/** 引用摘要 tooltip 文本：过长截断，避免 tooltip 过大 */
+function truncateContent(content?: string, max = 200): string {
+  if (!content)
+    return ""
+  return content.length > max ? `${content.slice(0, max)}…` : content
+}
+
+// ============================== 正文引用下标 hover 卡片 ==============================
+
+/** cite hover 卡片状态：引用数据 + fixed 定位坐标 */
+const citationTip = ref<{ refItem: RetrievalContent, x: number, y: number, placement: "top" | "bottom" } | null>(null)
+
+/** 取鼠标事件命中的引用 cite 元素 */
+function getCitationEl(e: MouseEvent): HTMLElement | null {
+  return (e.target as HTMLElement | null)?.closest?.("cite.md-citation") ?? null
+}
+
+/** XMarkdown 渲染内容：正文引用下标 [n] 转成可 hover 的 cite 标签 */
+function renderContent(item: MessageItem): string {
+  return transformCitations(item.content ?? "", item.retrievalContent)
+}
+
+/** 把正文中的引用下标 [n] 替换为 cite 标签（代码块 / 行内代码中不替换，流式未闭合代码块整体跳过） */
+function transformCitations(content: string, refs?: RetrievalContent[]): string {
+  if (!refs?.length)
+    return content
+  const numbers = new Set(refs.map(ref => ref.number))
+  return content
+    .split(/(```[\s\S]*?(?:```|$)|`[^`\n]*`)/g)
+    .map((part, index) =>
+      index % 2 === 1
+        ? part
+        : part.replace(/\[(\d+)\]/g, (match, num: string) =>
+            numbers.has(Number(num)) ? `<cite class="md-citation" number="${num}">${num}</cite>` : match)
+    )
+    .join("")
+}
+
+/** hover 引用下标：按 number 查引用数据，在元素上方（空间不足时下方）弹出卡片 */
+function handleCitationOver(e: MouseEvent, item: MessageItem) {
+  const el = getCitationEl(e)
+  if (!el)
+    return
+  const refItem = item.retrievalContent?.find(ref => ref.number === Number(el.getAttribute("number")))
+  if (!refItem)
+    return
+  const rect = el.getBoundingClientRect()
+  const placement = rect.top < 180 ? "bottom" : "top"
+  citationTip.value = {
+    refItem,
+    placement,
+    x: Math.min(Math.max(rect.left + rect.width / 2, 190), window.innerWidth - 190),
+    y: placement === "top" ? rect.top - 8 : rect.bottom + 8
+  }
+}
+
+function handleCitationOut(e: MouseEvent) {
+  const el = getCitationEl(e)
+  if (!el)
+    return
+  // 在同一 cite 内部移动（经过子元素）不隐藏
+  const to = e.relatedTarget as HTMLElement | null
+  if (to && el.contains(to))
+    return
+  citationTip.value = null
+}
+
+/** 点击引用下标：新窗口打开引用来源 */
+function handleCitationClick(e: MouseEvent, item: MessageItem) {
+  const el = getCitationEl(e)
+  if (!el)
+    return
+  e.preventDefault()
+  const url = item.retrievalContent?.find(ref => ref.number === Number(el.getAttribute("number")))?.url
+  if (url)
+    window.open(cleanUrl(url), "_blank", "noopener,noreferrer")
 }
 
 /** 上下文使用量对应的进度环颜色 */
@@ -517,6 +600,12 @@ function mapHistoryMessages(messages: ChatMessage[]): MessageItem[] {
       addToolRequests(item, message.toolExecutionRequests)
       if (message.text)
         item.content = (item.content ?? "") + message.text
+      // attributes：token 用量与引用检索内容（与 done 事件格式一致，取最后一版覆盖）
+      const attrs = (message.attributes ?? {}) as DoneAttributes
+      if (attrs.tokenUsage)
+        item.tokenUsage = attrs.tokenUsage
+      if (attrs.retrievalContent?.length)
+        item.retrievalContent = attrs.retrievalContent
     }
   }
   return items
@@ -630,11 +719,49 @@ watch(
           </template>
 
           <template #content="{ item }">
-            <!-- chat 内容走 markdown -->
-            <XMarkdown
-              v-if="item.content && item.role === 'ai'" :markdown="item.content" class="markdown-body"
-              :themes="{ light: 'github-light', dark: 'github-dark' }" :default-theme-mode="codeThemeMode"
-            />
+            <!-- 引用检索信息（AI 消息）：置于正文上方，可折叠 -->
+            <el-collapse v-if="item.role === 'ai' && item.retrievalContent?.length" class="retrieval-collapse">
+              <el-collapse-item name="refs">
+                <template #title>
+                  <span class="retrieval-header">
+                    <el-icon><Collection /></el-icon>
+                    引用内容 {{ item.retrievalContent.length }} 条
+                  </span>
+                </template>
+                <div v-for="refItem in item.retrievalContent" :key="refItem.number" class="retrieval-item">
+                  <el-tooltip
+                    :content="truncateContent(refItem.content)"
+                    placement="top"
+                    :show-after="300"
+                    :disabled="!refItem.content"
+                    popper-class="retrieval-tooltip"
+                  >
+                    <a
+                      :href="cleanUrl(refItem.url)"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="retrieval-link"
+                    >
+                      <span class="retrieval-number">{{ refItem.number }}</span>
+                      <span class="retrieval-title">{{ refItem.title }}</span>
+                    </a>
+                  </el-tooltip>
+                </div>
+              </el-collapse-item>
+            </el-collapse>
+            <!-- chat 内容走 markdown（引用下标 [n] 已转成 cite 标签，hover 展示引用卡片） -->
+            <div
+              v-if="item.content && item.role === 'ai'"
+              class="ai-content"
+              @mouseover="handleCitationOver($event, item)"
+              @mouseout="handleCitationOut"
+              @click="handleCitationClick($event, item)"
+            >
+              <XMarkdown
+                :markdown="renderContent(item)" class="markdown-body" allow-html
+                :themes="{ light: 'github-light', dark: 'github-dark' }" :default-theme-mode="codeThemeMode"
+              />
+            </div>
             <!-- user 内容 纯文本 + 图片 -->
             <template v-if="item.role === 'user'">
               <div v-if="item.content" class="user-content">
@@ -657,11 +784,11 @@ watch(
           </template>
 
           <template #footer="{ item }">
-            <div v-if="item.role === 'ai' && item.totalToken" class="token-info">
-              输入 {{ item.inputToken ?? 0 }} · 输出 {{ item.outputToken ?? 0 }} · 总计 {{ item.totalToken }}
+            <div v-if="item.role === 'ai' && item.tokenUsage?.totalToken" class="token-info">
+              输入 {{ item.tokenUsage.inputToken ?? 0 }} · 输出 {{ item.tokenUsage.outputToken ?? 0 }} · 总计 {{ item.tokenUsage.totalToken }}
               <el-tooltip
-                v-if="item.contextWindow"
-                :content="`上下文已用 ${contextPercent(item)}%（${item.totalToken} / ${item.contextWindow} tokens）`"
+                v-if="item.tokenUsage.contextWindow"
+                :content="`上下文已用 ${contextPercent(item)}%（${item.tokenUsage.totalToken} / ${item.tokenUsage.contextWindow} tokens）`"
                 placement="top"
               >
                 <svg class="context-ring" viewBox="0 0 20 20">
@@ -737,6 +864,26 @@ watch(
         </div>
       </div>
     </div>
+
+    <!-- 引用下标 hover 卡片（Teleport 到 body，跟随 cite 元素定位） -->
+    <Teleport to="body">
+      <div
+        v-if="citationTip"
+        class="citation-popover"
+        :class="citationTip.placement === 'top' ? 'is-top' : 'is-bottom'"
+        :style="{ left: `${citationTip.x}px`, top: `${citationTip.y}px` }"
+      >
+        <div class="citation-popover-title">
+          {{ citationTip.refItem.number }}. {{ citationTip.refItem.title }}
+        </div>
+        <div v-if="citationTip.refItem.content" class="citation-popover-content">
+          {{ truncateContent(citationTip.refItem.content) }}
+        </div>
+        <div v-if="citationTip.refItem.url" class="citation-popover-url">
+          {{ cleanUrl(citationTip.refItem.url) }}
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -1013,6 +1160,100 @@ watch(
     }
   }
 
+  // 引用检索信息（可折叠卡片，置于正文上方）
+  .retrieval-collapse {
+    margin-bottom: 8px;
+    font-size: 12px;
+    background-color: var(--el-fill-color-light);
+    border: 1px solid var(--el-border-color-lighter);
+    border-radius: 8px;
+
+    .el-collapse-item__header {
+      height: 32px;
+      padding: 0 10px;
+      font-size: 12px;
+      color: var(--el-text-color-regular);
+      background-color: transparent;
+      border-bottom: none;
+      border-radius: 8px;
+
+      &:hover {
+        background-color: var(--el-fill-color);
+      }
+    }
+
+    .el-collapse-item__wrap {
+      background-color: transparent;
+      border-bottom: none;
+    }
+
+    .el-collapse-item__content {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 4px 10px 10px;
+    }
+  }
+
+  .retrieval-header {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+    font-weight: 600;
+  }
+
+  .retrieval-link {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    max-width: 100%;
+    min-width: 0;
+    color: var(--el-text-color-regular);
+    text-decoration: none;
+
+    &:hover .retrieval-title {
+      color: var(--el-color-primary);
+    }
+  }
+
+  .retrieval-number {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    font-size: 11px;
+    line-height: 18px;
+    text-align: center;
+    color: var(--el-color-primary);
+    background-color: var(--el-color-primary-light-9);
+    border-radius: 50%;
+  }
+
+  .retrieval-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // 正文引用下标徽标（[n] 替换成的 cite 标签）
+  .md-citation {
+    display: inline-block;
+    margin: 0 2px;
+    padding: 0 5px;
+    font-size: 11px;
+    font-style: normal;
+    line-height: 16px;
+    color: var(--el-color-primary);
+    cursor: pointer;
+    user-select: none;
+    vertical-align: 2px;
+    background-color: var(--el-color-primary-light-9);
+    border-radius: 4px;
+
+    &:hover {
+      background-color: var(--el-color-primary-light-7);
+    }
+  }
+
   .markdown-body {
     background-color: transparent;
   }
@@ -1041,5 +1282,56 @@ watch(
       background-color: var(--el-bg-color);
     }
   }
+}
+// 引用下标 hover 卡片（Teleport 到 body，scoped 属性仍保留）
+.citation-popover {
+  position: fixed;
+  z-index: 3000;
+  max-width: 380px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--el-text-color-regular);
+  pointer-events: none;
+  background-color: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 8px;
+  box-shadow: var(--el-box-shadow-light);
+  transform: translateX(-50%);
+
+  // 显示在 cite 上方 / 下方
+  &.is-top {
+    transform: translateX(-50%) translateY(-100%);
+  }
+
+  .citation-popover-title {
+    font-weight: 600;
+  }
+
+  .citation-popover-content {
+    display: -webkit-box;
+    margin-top: 6px;
+    overflow: hidden;
+    color: var(--el-text-color-secondary);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+  }
+
+  .citation-popover-url {
+    margin-top: 6px;
+    color: var(--el-color-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+</style>
+
+<style lang="scss">
+// 引用摘要 tooltip（popper 挂载在 body 下，scoped 样式无法命中，需全局定义）
+.retrieval-tooltip {
+  max-width: 360px;
+  line-height: 1.6;
+  word-break: break-word;
 }
 </style>

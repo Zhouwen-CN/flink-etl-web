@@ -100,13 +100,27 @@ export interface SystemMessage {
   type: "SYSTEM"
 }
 
-/** SSE done 事件的 attributes */
-export interface DoneAttributes {
+/** token 用量统计 */
+export interface TokenUsage {
   inputToken?: number
   outputToken?: number
   totalToken?: number
   /** 所属模型的上下文窗口（token 数） */
   contextWindow?: number
+}
+
+/** 引用检索内容（联网搜索 / RAG 引用来源） */
+export interface RetrievalContent {
+  number: number
+  title: string
+  content?: string
+  url?: string
+}
+
+/** SSE done 事件 / 历史 AI 消息的 attributes */
+export interface DoneAttributes {
+  tokenUsage?: TokenUsage
+  retrievalContent?: RetrievalContent[]
 }
 
 /** 历史消息（用户 / AI / 工具执行结果 / 系统消息） */

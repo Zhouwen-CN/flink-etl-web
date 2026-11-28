@@ -114,7 +114,12 @@ export interface RetrievalContent {
   number: number
   title: string
   content?: string
+  /** 联网搜索独有：来源链接 */
   url?: string
+  /** 相关度得分（联网搜索 / RAG 均有，通常 0~1） */
+  score?: number
+  /** RAG 独有：命中的向量片段 id */
+  embeddingId?: string
 }
 
 /** SSE done 事件 / 历史 AI 消息的 attributes */

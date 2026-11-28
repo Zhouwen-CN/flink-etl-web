@@ -363,6 +363,20 @@ function cleanUrl(url?: string): string {
   return (url ?? "").replace(/`/g, "")
 }
 
+/** 相关度得分展示：0~1 归一为百分比，大于 1 视为已是百分制 */
+function formatScore(score?: number): string {
+  if (score === undefined || score === null) return ""
+  return `${Math.round(score <= 1 ? score * 100 : score)}%`
+}
+
+/** 相关度得分标签颜色：高 / 中 / 低 */
+function scoreTagType(score: number): "success" | "warning" | "info" {
+  const percent = score <= 1 ? score * 100 : score
+  if (percent >= 80) return "success"
+  if (percent >= 60) return "warning"
+  return "info"
+}
+
 /** 引用摘要 tooltip 文本：过长截断，避免 tooltip 过大 */
 function truncateContent(content?: string, max = 200): string {
   if (!content)
@@ -737,15 +751,29 @@ watch(
                     popper-class="retrieval-tooltip"
                   >
                     <a
+                      v-if="refItem.url"
                       :href="cleanUrl(refItem.url)"
                       target="_blank"
                       rel="noopener noreferrer"
                       class="retrieval-link"
                     >
                       <span class="retrieval-number">{{ refItem.number }}</span>
-                      <span class="retrieval-title">{{ refItem.title }}</span>
+                      <span class="retrieval-title">{{ refItem.title }}<span v-if="refItem.embeddingId" class="retrieval-embed-id">{{ refItem.embeddingId }}</span></span>
                     </a>
+                    <!-- RAG 引用无 url，仅展示不可点击 -->
+                    <span v-else class="retrieval-link">
+                      <span class="retrieval-number">{{ refItem.number }}</span>
+                      <span class="retrieval-title">{{ refItem.title }}<span v-if="refItem.embeddingId" class="retrieval-embed-id">{{ refItem.embeddingId }}</span></span>
+                    </span>
                   </el-tooltip>
+                  <el-tag
+                    v-if="refItem.score !== undefined"
+                    size="small"
+                    class="retrieval-tag"
+                    :type="scoreTagType(refItem.score)"
+                  >
+                    相关度 {{ formatScore(refItem.score) }}
+                  </el-tag>
                 </div>
               </el-collapse-item>
             </el-collapse>
@@ -1202,8 +1230,19 @@ watch(
     font-weight: 600;
   }
 
+  .retrieval-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    .retrieval-tag {
+      flex-shrink: 0;
+    }
+  }
+
   .retrieval-link {
     display: inline-flex;
+    flex: 1;
     gap: 6px;
     align-items: center;
     max-width: 100%;
@@ -1232,6 +1271,12 @@ watch(
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    .retrieval-embed-id {
+      margin-left: 6px;
+      font-size: 11px;
+      color: var(--el-text-color-secondary);
+    }
   }
 
   // 正文引用下标徽标（[n] 替换成的 cite 标签）
